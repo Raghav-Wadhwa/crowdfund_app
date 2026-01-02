@@ -26,20 +26,33 @@ router.post(
   '/',
   auth, // Require authentication
   [
-    body('title').trim().isLength({ min: 5, max: 100 }),
-    body('description').trim().isLength({ min: 50 }),
-    body('category').isIn([
-      'Technology',
-      'Education',
-      'Healthcare',
-      'Art',
-      'Environment',
-      'Business',
-      'Social',
-      'Other',
-    ]),
-    body('goalAmount').isFloat({ min: 1 }),
-    body('deadline').isISO8601().toDate(),
+    body('title')
+      .trim()
+      .isLength({ min: 5, max: 100 })
+      .withMessage('Title must be between 5 and 100 characters'),
+    body('description')
+      .trim()
+      .isLength({ min: 50 })
+      .withMessage('Description must be at least 50 characters long'),
+    body('category')
+      .isIn([
+        'Technology',
+        'Education',
+        'Healthcare',
+        'Art',
+        'Environment',
+        'Business',
+        'Social',
+        'Other',
+      ])
+      .withMessage('Invalid category selected'),
+    body('goalAmount')
+      .isFloat({ min: 1 })
+      .withMessage('Goal amount must be at least $1'),
+    body('deadline')
+      .isISO8601()
+      .toDate()
+      .withMessage('Please provide a valid deadline date'),
   ],
   async (req, res) => {
     try {

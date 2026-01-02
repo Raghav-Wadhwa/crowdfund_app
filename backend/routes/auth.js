@@ -67,8 +67,9 @@ router.post(
       // Create new user (password will be hashed by pre-save hook)
       const user = new User({ name, email, password });
       await user.save();
-
-      // Generate token
+      console.log('User created:', user);
+      console.log('User ID:', user._id);
+      // Generate token for the database user
       const token = generateToken(user._id);
 
       res.status(201).json({
@@ -116,8 +117,13 @@ router.post(
 
       const { email, password } = req.body;
 
+      // Debug logs: show incoming body (avoid logging passwords in production)
+      console.log('[/api/auth/login] incoming body:', { email, password: password ? '***REDACTED***' : undefined });
+
       // Find user and include password (since it's excluded by default)
       const user = await User.findOne({ email }).select('+password');
+
+      console.log('[/api/auth/login] user found:', user ? { id: user._id, email: user.email, passwordPresent: !!user.password } : null);
 
       if (!user) {
         return res.status(401).json({
@@ -126,8 +132,9 @@ router.post(
         });
       }
 
-      // Compare password
+      // Compare password from User.js
       const isMatch = await user.comparePassword(password);
+      console.log('[/api/auth/login] password match result:', isMatch);
 
       if (!isMatch) {
         return res.status(401).json({
@@ -176,6 +183,117 @@ router.get('/me', auth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/auth/change-password
+ * @desc    Change user password
+ * @access  Private (requires authentication)
+ */
+router.put(
+  '/change-password',
+  auth,
+  [
+    body('currentPassword')
+      .notEmpty()
+      .withMessage('Current password is required'),
+    body('newPassword')
+      .isLength({ min: 6 })
+      .withMessage('New password must be at least 6 characters'),
+  ],
+  async (req, res) => {
+    try {
+      // Validate input
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array(),
+        });
+      }
+
+      const { currentPassword, newPassword } = req.body;
+
+      // Get user with password field
+      const user = await User.findById(req.user._id).select('+password');
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+      }
+
+      // Verify current password
+      const isMatch = await user.comparePassword(currentPassword);
+      if (!isMatch) {
+        return res.status(401).json({
+          success: false,
+          message: 'Current password is incorrect',
+        });
+      }
+
+      // Check if new password is same as current
+      if (currentPassword === newPassword) {
+        return res.status(400).json({
+          success: false,
+          message: 'New password must be different from current password',
+        });
+      }
+
+      // Update password (will be hashed by pre-save hook)
+      user.password = newPassword;
+      await user.save();
+
+      console.log(`Password changed for user: ${user.email}`);
+
+      res.json({
+        success: true,
+        message: 'Password changed successfully',
+      });
+    } catch (error) {
+      console.error('Change password error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error changing password',
+        error: error.message,
+      });
+    }
+  }
+);
+
+/**
+ * @route   GET /api/auth/users
+ * @desc    Get all users (Admin only)
+ * @access  Private (Admin only)
+ */
+router.get('/users', auth, async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin privileges required.',
+      });
+    }
+
+    // Get all users (excluding passwords)
+    const users = await User.find().select('-password').sort('-createdAt');
+
+    res.json({
+      success: true,
+      count: users.length,
+      users,
+    });
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching users',
       error: error.message,
     });
   }

@@ -37,8 +37,17 @@ backend/uploads/*
 coverage/
 .nyc_output/
 
-# Documentation (exclude explanation files)
+# Documentation and Guide Files (exclude from repo)
 BACKEND_EXPLANATION.md
+MONGODB_INTERACTION_GUIDE.md
+FRONTEND_SETUP.md
+ADMIN_GUIDE.md
+
+# Test/Setup Scripts (exclude from repo)
+backend/create-admin.js
+backend/create-test-user.js
+backend/make-admin.js
+backend/test-db.js
 
 # Misc
 *.pem
