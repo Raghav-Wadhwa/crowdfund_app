@@ -42,6 +42,7 @@ BACKEND_EXPLANATION.md
 MONGODB_INTERACTION_GUIDE.md
 FRONTEND_SETUP.md
 ADMIN_GUIDE.md
+DEPLOYMENT_GUIDE.md
 
 # Test/Setup Scripts (exclude from repo)
 backend/create-admin.js
