@@ -24,7 +24,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename="/crowdfund_app">
         <div className="min-h-screen bg-gray-50">
           <Navbar />
           <Routes>

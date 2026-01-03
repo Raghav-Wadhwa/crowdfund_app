@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>CrowdFund - Redirecting...</title>
+    <script>
+      // GitHub Pages SPA redirect hack
+      // This script takes the current URL and converts it to a query string
+      // that our index.html can read and route to the correct page
+      
+      const pathSegmentsToKeep = 1; // For repo at https://username.github.io/repo-name/
+      
+      const location = window.location;
+      const pathSegments = location.pathname.split('/').filter(segment => segment);
+      
+      // Keep the first segment (repo name) and convert the rest to query parameter
+      const redirect = location.pathname.slice(0, location.pathname.lastIndexOf('/') + 1) + 
+        '?redirect=' + 
+        encodeURIComponent(pathSegments.slice(pathSegmentsToKeep).join('/') + location.search + location.hash);
+      
+      // Redirect to index.html with the path as a query parameter
+      location.replace(redirect);
+    </script>
+  </head>
+  <body>
+    <p>Redirecting...</p>
+  </body>
+</html>
+

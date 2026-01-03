@@ -4,6 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CrowdFund - Support Creative Projects</title>
+    
+    <!-- GitHub Pages SPA redirect handler -->
+    <script>
+      // Check if we're being redirected from 404.html
+      (function() {
+        const redirect = new URLSearchParams(window.location.search).get('redirect');
+        if (redirect) {
+          // Remove the query parameter and restore the correct URL
+          const decodedPath = decodeURIComponent(redirect);
+          history.replaceState(null, null, 
+            window.location.pathname.replace(/\?.*$/, '') + 
+            (decodedPath.startsWith('/') ? decodedPath : '/' + decodedPath)
+          );
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
