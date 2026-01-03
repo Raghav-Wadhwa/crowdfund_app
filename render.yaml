@@ -1,0 +1,23 @@
+# Render.com deployment configuration
+# This file tells Render how to deploy your backend
+
+services:
+  # Backend API Service
+  - type: web
+    name: crowdfund-backend
+    runtime: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Add your MongoDB URI in Render dashboard (don't put it here!)
+      - key: MONGODB_URI
+        sync: false
+      # Add your JWT secret in Render dashboard (don't put it here!)
+      - key: JWT_SECRET
+        sync: false
+    healthCheckPath: /api/health
+
