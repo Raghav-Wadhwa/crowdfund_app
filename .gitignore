@@ -38,11 +38,17 @@ coverage/
 .nyc_output/
 
 # Documentation and Guide Files (exclude from repo)
+docs/
 BACKEND_EXPLANATION.md
 MONGODB_INTERACTION_GUIDE.md
 FRONTEND_SETUP.md
 ADMIN_GUIDE.md
 DEPLOYMENT_GUIDE.md
+
+# Deployment configuration files
+render.yaml
+RENDER_DEPLOYMENT.md
+*.deployment.md
 
 # Debugging/Test Scripts (exclude entire folder)
 backend/debugging/
