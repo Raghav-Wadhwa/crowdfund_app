@@ -44,11 +44,8 @@ FRONTEND_SETUP.md
 ADMIN_GUIDE.md
 DEPLOYMENT_GUIDE.md
 
-# Test/Setup Scripts (exclude from repo)
-backend/create-admin.js
-backend/create-test-user.js
-backend/make-admin.js
-backend/test-db.js
+# Debugging/Test Scripts (exclude entire folder)
+backend/debugging/
 
 # Misc
 *.pem
