@@ -22,9 +22,12 @@ import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
+  // Use /crowdfund_app for GitHub Pages, / for local development
+  const basename = import.meta.env.BASE_URL || '/';
+  
   return (
     <AuthProvider>
-      <Router basename="/crowdfund_app">
+      <Router basename={basename}>
         <div className="min-h-screen bg-gray-50">
           <Navbar />
           <Routes>

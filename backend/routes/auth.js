@@ -80,6 +80,9 @@ router.post(
           id: user._id,
           name: user.name,
           email: user.email,
+          role: user.role,
+          avatar: user.avatar,
+          createdAt: user.createdAt,
         },
       });
     } catch (error) {
@@ -154,6 +157,9 @@ router.post(
           id: user._id,
           name: user.name,
           email: user.email,
+          role: user.role,
+          avatar: user.avatar,
+          createdAt: user.createdAt,
         },
       });
     } catch (error) {
@@ -183,6 +189,53 @@ router.get('/me', auth, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @route   GET /api/auth/stats
+ * @desc    Get current user's statistics (campaigns, donations)
+ * @access  Private (requires authentication)
+ */
+router.get('/stats', auth, async (req, res) => {
+  try {
+    const Campaign = require('../models/Campaign');
+    const Donation = require('../models/Donation');
+
+    // Count campaigns created by user
+    const campaignsCount = await Campaign.countDocuments({ 
+      creator: req.user._id 
+    });
+
+    // Get total amount raised from user's campaigns
+    const userCampaigns = await Campaign.find({ creator: req.user._id });
+    const totalRaised = userCampaigns.reduce((sum, campaign) => sum + campaign.currentAmount, 0);
+
+    // Count donations made by user
+    const donationsCount = await Donation.countDocuments({ 
+      donor: req.user._id 
+    });
+
+    // Get total amount donated by user
+    const userDonations = await Donation.find({ donor: req.user._id });
+    const totalDonated = userDonations.reduce((sum, donation) => sum + donation.amount, 0);
+
+    res.json({
+      success: true,
+      stats: {
+        campaignsCreated: campaignsCount,
+        totalRaised: totalRaised,
+        donationsMade: donationsCount,
+        totalDonated: totalDonated,
+      },
+    });
+  } catch (error) {
+    console.error('Get stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching statistics',
       error: error.message,
     });
   }
