@@ -225,8 +225,11 @@ router.put('/:id', auth, async (req, res) => {
       });
     }
 
-    // Check if user is the creator
-    if (campaign.creator.toString() !== req.user._id.toString()) {
+    // Check if user is the creator or an admin
+    const isCreator = campaign.creator.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
+    
+    if (!isCreator && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to update this campaign',
@@ -281,8 +284,11 @@ router.delete('/:id', auth, async (req, res) => {
       });
     }
 
-    // Check if user is the creator
-    if (campaign.creator.toString() !== req.user._id.toString()) {
+    // Check if user is the creator or an admin
+    const isCreator = campaign.creator.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
+    
+    if (!isCreator && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this campaign',

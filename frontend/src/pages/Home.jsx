@@ -9,15 +9,15 @@ import { ArrowRight, Target, Users, TrendingUp } from 'lucide-react';
 
 const Home = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-primary-600 to-primary-400 text-white py-20">
+      <section className="bg-gradient-to-r from-primary-600 to-primary-400 dark:from-primary-700 dark:to-primary-500 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 animate-fadeIn">
               Fund Your Dreams, Change Lives
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-primary-50 max-w-3xl mx-auto animate-fadeIn">
+            <p className="text-xl md:text-2xl mb-8 text-primary-50 dark:text-primary-100 max-w-3xl mx-auto animate-fadeIn">
               Join thousands of creators and backers building the future together.
               Start your campaign or support amazing projects today.
             </p>
@@ -41,69 +41,69 @@ const Home = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-6 rounded-lg bg-gradient-to-br from-primary-50 to-white border border-primary-100">
-              <div className="bg-primary-600 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="text-center p-6 rounded-lg bg-gradient-to-br from-primary-50 to-white dark:from-gray-800 dark:to-gray-900 border border-primary-100 dark:border-gray-700">
+              <div className="bg-primary-600 dark:bg-primary-500 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Target className="h-8 w-8" />
               </div>
-              <h3 className="text-4xl font-bold text-primary-600 mb-2">1000+</h3>
-              <p className="text-gray-600 font-medium">Successful Campaigns</p>
+              <h3 className="text-4xl font-bold text-primary-600 dark:text-primary-400 mb-2">1000+</h3>
+              <p className="text-gray-600 dark:text-gray-400 font-medium">Successful Campaigns</p>
             </div>
 
-            <div className="text-center p-6 rounded-lg bg-gradient-to-br from-primary-50 to-white border border-primary-100">
-              <div className="bg-primary-600 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="text-center p-6 rounded-lg bg-gradient-to-br from-primary-50 to-white dark:from-gray-800 dark:to-gray-900 border border-primary-100 dark:border-gray-700">
+              <div className="bg-primary-600 dark:bg-primary-500 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="h-8 w-8" />
               </div>
-              <h3 className="text-4xl font-bold text-primary-600 mb-2">50K+</h3>
-              <p className="text-gray-600 font-medium">Active Backers</p>
+              <h3 className="text-4xl font-bold text-primary-600 dark:text-primary-400 mb-2">50K+</h3>
+              <p className="text-gray-600 dark:text-gray-400 font-medium">Active Backers</p>
             </div>
 
-            <div className="text-center p-6 rounded-lg bg-gradient-to-br from-primary-50 to-white border border-primary-100">
-              <div className="bg-primary-600 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="text-center p-6 rounded-lg bg-gradient-to-br from-primary-50 to-white dark:from-gray-800 dark:to-gray-900 border border-primary-100 dark:border-gray-700">
+              <div className="bg-primary-600 dark:bg-primary-500 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <TrendingUp className="h-8 w-8" />
               </div>
-              <h3 className="text-4xl font-bold text-primary-600 mb-2">$10M+</h3>
-              <p className="text-gray-600 font-medium">Total Raised</p>
+              <h3 className="text-4xl font-bold text-primary-600 dark:text-primary-400 mb-2">$10M+</h3>
+              <p className="text-gray-600 dark:text-gray-400 font-medium">Total Raised</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gray-50 dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center mb-12 text-gray-900">
+          <h2 className="text-4xl font-bold text-center mb-12 text-gray-900 dark:text-white">
             How It Works
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="bg-primary-600 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+              <div className="bg-primary-600 dark:bg-primary-500 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
                 1
               </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">Create Campaign</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Create Campaign</h3>
+              <p className="text-gray-600 dark:text-gray-400">
                 Set up your campaign with a compelling story and funding goal.
               </p>
             </div>
 
             <div className="text-center">
-              <div className="bg-primary-600 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+              <div className="bg-primary-600 dark:bg-primary-500 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
                 2
               </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">Share & Promote</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Share & Promote</h3>
+              <p className="text-gray-600 dark:text-gray-400">
                 Share your campaign with friends, family, and social networks.
               </p>
             </div>
 
             <div className="text-center">
-              <div className="bg-primary-600 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+              <div className="bg-primary-600 dark:bg-primary-500 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
                 3
               </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">Receive Funding</h3>
-              <p className="text-gray-600">
+              <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Receive Funding</h3>
+              <p className="text-gray-600 dark:text-gray-400">
                 Get funded by backers who believe in your project.
               </p>
             </div>

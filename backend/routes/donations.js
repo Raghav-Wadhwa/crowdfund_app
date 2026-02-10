@@ -66,6 +66,23 @@ router.post(
         });
       }
 
+      // Check if donation exceeds remaining amount needed
+      const remainingAmount = campaign.goalAmount - campaign.currentAmount;
+      if (remainingAmount <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Campaign has already reached its goal',
+        });
+      }
+      
+      if (amount > remainingAmount) {
+        return res.status(400).json({
+          success: false,
+          message: `Donation amount exceeds the remaining goal. Maximum donation: $${remainingAmount.toFixed(2)}`,
+          remainingAmount: remainingAmount,
+        });
+      }
+
       // Create donation
       const donation = new Donation({
         amount,

@@ -43,12 +43,12 @@ const Campaigns = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Explore Campaigns</h1>
-          <p className="text-lg text-gray-600">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Explore Campaigns</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
             Discover and support amazing projects from creators around the world
           </p>
         </div>
@@ -57,14 +57,14 @@ const Campaigns = () => {
         <div className="mb-8">
           <div className="relative max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+              <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
             </div>
             <input
               type="text"
               placeholder="Search campaigns..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+              className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent outline-none transition-colors"
             />
           </div>
         </div>
@@ -80,7 +80,7 @@ const Campaigns = () => {
               <Link
                 key={campaign._id}
                 to={`/campaigns/${campaign._id}`}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-700 overflow-hidden hover:shadow-xl dark:hover:shadow-gray-600 transition-all"
               >
                 {/* Campaign Image */}
                 <div className="h-48 bg-gradient-to-r from-primary-400 to-primary-600 flex items-center justify-center">
@@ -100,29 +100,29 @@ const Campaigns = () => {
                 {/* Campaign Info */}
                 <div className="p-6">
                   <div className="mb-2">
-                    <span className="inline-block bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-full font-semibold">
+                    <span className="inline-block bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 text-xs px-2 py-1 rounded-full font-semibold">
                       {campaign.category}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
                     {campaign.title}
                   </h3>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
                     {campaign.description}
                   </p>
 
                   {/* Progress */}
                   <div className="mb-3">
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-600">Raised</span>
-                      <span className="font-semibold text-gray-900">
+                      <span className="text-gray-600 dark:text-gray-400">Raised</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
                         ${campaign.currentAmount.toLocaleString()} of $
                         {campaign.goalAmount.toLocaleString()}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div
-                        className="bg-gradient-to-r from-primary-600 to-primary-400 h-2 rounded-full transition-all"
+                        className="bg-gradient-to-r from-primary-600 to-primary-400 dark:from-primary-500 dark:to-primary-300 h-2 rounded-full transition-all"
                         style={{
                           width: `${Math.min(
                             (campaign.currentAmount / campaign.goalAmount) * 100,
@@ -134,7 +134,7 @@ const Campaigns = () => {
                   </div>
 
                   {/* Footer */}
-                  <div className="flex justify-between items-center text-sm text-gray-600">
+                  <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
                     <span>{campaign.donorsCount} backers</span>
                     <span>{Math.round(campaign.progress)}% funded</span>
                   </div>
