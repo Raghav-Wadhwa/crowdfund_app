@@ -15,6 +15,7 @@ import Register from './pages/Register';
 import Campaigns from './pages/Campaigns';
 import CampaignDetail from './pages/CampaignDetail';
 import CreateCampaign from './pages/CreateCampaign';
+import EditCampaign from './pages/EditCampaign';
 import Dashboard from './pages/Dashboard';
 
 // Components
@@ -44,6 +45,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CreateCampaign />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/campaigns/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <EditCampaign />
                 </ProtectedRoute>
               }
             />

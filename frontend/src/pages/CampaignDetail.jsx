@@ -5,17 +5,29 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import DonateModal from '../components/DonateModal';
+import { useAuth } from '../context/AuthContext';
+import { Edit } from 'lucide-react';
 
 const CampaignDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
   // STEP 2A: Add state to control modal visibility
   const [showModal, setShowModal] = useState(false);
+
+
+  const setEdit = () => {
+    if (user.role === 'admin') {
+      setEdit(true);
+    }
+    setEdit(false);
+  }
 
   useEffect(() => {
     fetchCampaign();
@@ -30,6 +42,19 @@ const CampaignDetail = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Check if current user can edit this campaign
+  const canEdit = () => {
+    if (!user || !campaign) return false;
+    const isCreator = campaign.creator._id === user.id;
+    const isAdmin = user.role === 'admin';
+    return isCreator || isAdmin;
+  };
+
+  const handleEdit = () => {
+    // Navigate to edit page or open edit modal
+    navigate(`/campaigns/${id}/edit`);
   };
 
   if (loading) {
@@ -69,7 +94,20 @@ const CampaignDetail = () => {
               </span>
             </div>
 
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{campaign.title}</h1>
+            <div className="flex justify-between items-start mb-4">
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{campaign.title}</h1>
+              
+              {/* Edit button - only visible to creator or admin */}
+              {canEdit() && (
+                <button
+                  onClick={handleEdit}
+                  className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
+                >
+                  <Edit className="h-5 w-5" />
+                  <span>Edit</span>
+                </button>
+              )}
+            </div>
             
             <p className="text-gray-600 dark:text-gray-400 text-lg mb-8 whitespace-pre-wrap">{campaign.description}</p>
 
@@ -80,7 +118,7 @@ const CampaignDetail = () => {
             >
               Back This Campaign
             </button>
-
+ 
             {/* Progress Section */}
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-8 transition-colors">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
