@@ -100,7 +100,9 @@ const Navbar = () => {
                 {/* User Menu */}
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-200">
-                    <User className="h-5 w-5" />
+                    {
+                      user.avatar ? (<img src={user.avatar} alt="User Avatar" className="h-10 w-10 rounded-full" />) : (<User className="h-5 w-5" />)
+                    }
                     <span className="font-medium">{user.name}</span>
                   </div>
                   <button
