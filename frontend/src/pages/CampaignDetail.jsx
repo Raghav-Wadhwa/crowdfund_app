@@ -35,7 +35,7 @@ const CampaignDetail = () => {
 
   const fetchCampaign = async () => {
     try {
-      const response = await api.get(`/campaigns/${id}`);
+      const response = await api.get(`/campaigns.list/${id}`);
       setCampaign(response.data.campaign);
     } catch (error) {
       toast.error('Failed to load campaign');

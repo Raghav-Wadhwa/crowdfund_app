@@ -1,0 +1,322 @@
+/* Import professional modern fonts */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;800&display=swap');
+
+/* Logo icon - custom sprout/seedling icon */
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #38bdf8 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
+  transition: all 0.3s ease;
+}
+
+.logo-icon:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+}
+
+/* Sprout inside the icon */
+.logo-icon-sprout {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* Stem */
+.logo-icon-stem {
+  width: 3px;
+  height: 10px;
+  background: white;
+  border-radius: 2px;
+  position: absolute;
+  bottom: 0;
+}
+
+/* Leaves */
+.logo-icon-leaf {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50% 0 50% 0;
+  bottom: 6px;
+}
+
+.logo-icon-leaf-left {
+  left: 2px;
+  transform: rotate(-45deg);
+  animation: iconLeafSway1 2.5s ease-in-out infinite;
+}
+
+.logo-icon-leaf-right {
+  right: 2px;
+  transform: rotate(45deg);
+  border-radius: 0 50% 0 50%;
+  animation: iconLeafSway2 2.5s ease-in-out infinite 0.3s;
+}
+
+@keyframes iconLeafSway1 {
+  0%, 100% {
+    transform: rotate(-45deg) scale(1);
+  }
+  50% {
+    transform: rotate(-40deg) scale(1.15);
+  }
+}
+
+@keyframes iconLeafSway2 {
+  0%, 100% {
+    transform: rotate(45deg) scale(1);
+  }
+  50% {
+    transform: rotate(40deg) scale(1.15);
+  }
+}
+
+/* Dark mode adjustments for logo icon */
+.dark .logo-icon {
+  background: linear-gradient(135deg, #38bdf8 0%, #7dd3fc 50%, #bae6fd 100%);
+  box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+}
+
+.dark .logo-icon:hover {
+  box-shadow: 0 6px 20px rgba(125, 211, 252, 0.4);
+}
+
+.dark .logo-icon-stem {
+  background: #0c4a6e;
+}
+
+.dark .logo-icon-leaf {
+  background: #0c4a6e;
+}
+
+/* Logo container - keeps logo centered */
+.logo-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* Cool SeedLing logo with creative typography - matches primary-600 */
+.logo-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  transition: all 0.3s ease;
+}
+
+/* Individual letter styling for Seed - matches primary-600 */
+.logo-seed {
+  font-weight: 500;
+  color: #0284c7;
+  transition: all 0.3s ease;
+}
+
+/* Separator between SEED and LING */
+.logo-separator {
+  width: 6px;
+  height: 6px;
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+  border-radius: 50%;
+  margin: 0 2px;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+/* L letter */
+.logo-l {
+  font-weight: 800;
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: all 0.3s ease;
+}
+
+/* I letter container */
+.logo-i {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: 800;
+}
+
+/* I stem (the vertical line) */
+.logo-i-stem {
+  background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+
+/* I dot - rotating! */
+.logo-i-dot {
+  width: 5px;
+  height: 5px;
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  animation: rotateDot 2s linear infinite;
+  box-shadow: 0 0 6px rgba(14, 165, 233, 0.5);
+}
+
+/* Rotation animation for the dot */
+@keyframes rotateDot {
+  0% {
+    transform: rotate(0deg) translateX(8px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(8px) rotate(-360deg);
+  }
+}
+
+/* NG letters */
+.logo-ng {
+  font-weight: 800;
+  background: linear-gradient(135deg, #38bdf8 0%, #7dd3fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: all 0.3s ease;
+}
+
+/* Subtitle text - absolutely positioned below */
+.logo-subtitle {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #6b7280;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Hover effects - subtitle fades in from below */
+.logo-wrapper:hover .logo-subtitle {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.logo-text:hover .logo-seed {
+  color: #0ea5e9;
+  transform: translateX(-2px);
+}
+
+.logo-text:hover .logo-separator {
+  transform: scale(1.5);
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.6);
+}
+
+.logo-text:hover .logo-l {
+  transform: translateX(-1px);
+  filter: drop-shadow(0 2px 8px rgba(2, 132, 199, 0.4));
+}
+
+.logo-text:hover .logo-i-stem {
+  filter: drop-shadow(0 2px 8px rgba(14, 165, 233, 0.4));
+}
+
+.logo-text:hover .logo-i-dot {
+  animation-duration: 0.5s; /* Speed up rotation on hover */
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+}
+
+.logo-text:hover .logo-ng {
+  transform: translateX(2px);
+  filter: drop-shadow(0 2px 8px rgba(56, 189, 248, 0.4));
+}
+
+/* Active state */
+.logo-text:active .logo-seed,
+.logo-text:active .logo-l,
+.logo-text:active .logo-ng {
+  transform: translateX(0);
+}
+
+/* Dark mode - using lighter primary shades */
+.dark .logo-seed {
+  color: #38bdf8;
+}
+
+.dark .logo-separator {
+  background: linear-gradient(135deg, #38bdf8, #7dd3fc);
+}
+
+.dark .logo-l {
+  background: linear-gradient(135deg, #38bdf8 0%, #7dd3fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.dark .logo-i-stem {
+  background: linear-gradient(135deg, #7dd3fc 0%, #bae6fd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.dark .logo-i-dot {
+  background: linear-gradient(135deg, #7dd3fc, #bae6fd);
+  box-shadow: 0 0 8px rgba(125, 211, 252, 0.6);
+}
+
+.dark .logo-ng {
+  background: linear-gradient(135deg, #bae6fd 0%, #e0f2fe 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.dark .logo-subtitle {
+  color: #9ca3af;
+}
+
+.dark .logo-text:hover .logo-seed {
+  color: #7dd3fc;
+}
+
+.dark .logo-text:hover .logo-l {
+  filter: drop-shadow(0 2px 12px rgba(56, 189, 248, 0.5));
+}
+
+.dark .logo-text:hover .logo-i-stem {
+  filter: drop-shadow(0 2px 12px rgba(125, 211, 252, 0.5));
+}
+
+.dark .logo-text:hover .logo-i-dot {
+  box-shadow: 0 0 15px rgba(186, 230, 253, 0.9);
+}
+
+.dark .logo-text:hover .logo-ng {
+  filter: drop-shadow(0 2px 12px rgba(186, 230, 253, 0.5));
+}
+
+.dark .logo-text:hover .logo-separator {
+  box-shadow: 0 0 15px rgba(125, 211, 252, 0.8);
+}

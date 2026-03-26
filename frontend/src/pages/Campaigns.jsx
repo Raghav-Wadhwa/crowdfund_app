@@ -21,7 +21,7 @@ const Campaigns = () => {
 
   const fetchCampaigns = async () => {
     try {
-      const response = await api.get('/campaigns');
+      const response = await api.get('/campaigns.list');
       setCampaigns(response.data.campaigns);
     } catch (error) {
       toast.error('Failed to load campaigns');

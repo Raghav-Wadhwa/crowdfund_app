@@ -8,7 +8,7 @@ export default defineConfig(({ command }) => {
   const base = command === 'build' ? '/crowdfund_app/' : '/';
   
   return {
-    plugins: [react()],
+  plugins: [react()],
     base: base,
   };
 })

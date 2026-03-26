@@ -18,7 +18,7 @@ const auth = require('../middleware/auth');
 const router = express.Router();
 
 /**
- * @route   POST /api/campaigns
+ * @route   POST /api/campaign.list
  * @desc    Create a new campaign
  * @access  Private (only authenticated users)
  */
@@ -101,7 +101,7 @@ router.post(
 );
 
 /**
- * @route   GET /api/campaigns
+ * @route   GET /api/campaign.list
  * @desc    Get all campaigns (with filtering, sorting, pagination)
  * @access  Public
  */
@@ -165,7 +165,7 @@ router.get('/', async (req, res) => {
 });
 
 /**
- * @route   GET /api/campaigns/:id
+ * @route   GET /api/campaign.list/:id
  * @desc    Get single campaign by ID
  * @access  Public
  */
@@ -210,7 +210,7 @@ router.get('/:id', async (req, res) => {
 });
 
 /**
- * @route   PUT /api/campaigns/:id
+ * @route   PUT /api/campaign.list/:id
  * @desc    Update campaign (only by creator)
  * @access  Private
  */
@@ -269,7 +269,7 @@ router.put('/:id', auth, async (req, res) => {
 });
 
 /**
- * @route   DELETE /api/campaigns/:id
+ * @route   DELETE /api/campaign.list/:id
  * @desc    Delete campaign (only by creator)
  * @access  Private
  */

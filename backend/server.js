@@ -50,8 +50,8 @@ app.use('/uploads', express.static('uploads'));
 // Routes
 // All authentication routes (register, login) will be prefixed with /api/auth
 app.use('/api/auth', authRoutes);
-// Campaign routes (create, get, update campaigns) prefixed with /api/campaigns
-app.use('/api/campaigns', campaignRoutes);
+// Campaign routes (create, get, update campaigns) prefixed with /api/campaigns.list
+app.use('/api/campaigns.list', campaignRoutes);
 // Donation routes prefixed with /api/donations
 app.use('/api/donations', donationRoutes);
 

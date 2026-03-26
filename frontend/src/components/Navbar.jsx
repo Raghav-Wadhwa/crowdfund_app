@@ -8,8 +8,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Home, List, PlusCircle, LayoutDashboard, LogOut, User, Sun, Moon } from 'lucide-react';
+import { List, PlusCircle, LayoutDashboard, LogOut, User, Sun, Moon } from 'lucide-react';
 import toast from 'react-hot-toast';
+import './Navbar.css';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -40,12 +41,25 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="bg-gradient-to-r from-primary-600 to-primary-400 dark:from-primary-500 dark:to-primary-300 text-white p-2 rounded-lg">
-              <Home className="h-6 w-6" />
+            <div className="logo-icon">
+              <div className="logo-icon-sprout">
+                <div className="logo-icon-stem"></div>
+                <div className="logo-icon-leaf logo-icon-leaf-left"></div>
+                <div className="logo-icon-leaf logo-icon-leaf-right"></div>
+              </div>
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent dark:text-white dark:bg-none">
-              CrowdFund
-            </span>
+            <div className="logo-wrapper">
+              <span className="logo-text">
+                <span className="logo-seed">SEED</span>
+                <span className="logo-l">L</span>
+                <span className="logo-i">
+                  <span className="logo-i-stem">I</span>
+                  <span className="logo-i-dot"></span>
+                </span>
+                <span className="logo-ng">NG</span>
+              </span>
+              <span className="logo-subtitle">a crowdfund application</span>
+            </div>
           </Link>
 
           {/* Navigation Links */}
