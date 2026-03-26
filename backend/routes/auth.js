@@ -319,6 +319,81 @@ router.put(
   }
 );
 
+router.put('/update-profile', auth, [
+  body('name').optional().trim().isLength({min:2}).withMessage('Name must be at least 2 characters'),
+  body('email').optional().isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+  body('avatar').optional().isString().withMessage('Please provide a valid URL for the avatar'),
+], async (req, res) => {
+  try{
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array(),
+      })
+    }
+    let hasChanges = false;
+    const {name, email, avatar} = req.body;
+    const user = await User.findById(req.user._id);
+        if (
+          name === user.name &&
+          email === user.email &&
+          avatar === user.avatar
+        ) {
+          return res.json({ success: true, message: "No changes made" });
+        }
+    if(!user){
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      })
+    }
+
+    if(email && email !== user.email){
+      const existingUser = await User.findOne({email});
+      if(existingUser){
+        return res.status(400).json({
+          success: false,
+          message: 'Email already in use',
+        })
+      }
+      user.email = email;
+      hasChanges = true;
+    }
+    if(name && name !== user.name){
+      user.name = name;
+      hasChanges = true;
+    }
+    if(avatar && avatar !== user.avatar){
+      user.avatar = avatar;
+      hasChanges = true;
+    }
+    if(!hasChanges){
+      return res.json({ success: true, message: "No changes made" });
+    }
+    await user.save();
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: {
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+      },
+    })
+  }
+  catch(error){
+    console.log('Update profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating profile',
+      error: error.message,
+    })
+  }
+}
+)
+
 /**
  * @route   GET /api/auth/users
  * @desc    Get all users (Admin only)

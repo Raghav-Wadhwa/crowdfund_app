@@ -139,7 +139,7 @@ npm run dev
 | POST | `/login` | Login user | No |
 | GET | `/me` | Get current user | Yes |
 
-### Campaigns (`/api/campaign.list`)
+### Campaigns (`/api/campaigns.list`)
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
 | GET | `/` | Get all campaigns | No |
