@@ -64,11 +64,17 @@ const Navbar = () => {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
-
             {/* Theme Toggle */}
-          <button onClick={toggleTheme} className='text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors border border-gray-300 dark:border-gray-600 rounded-md p-2 mr-2'>
-            {theme === 'light' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </button> 
+            <button
+              onClick={toggleTheme}
+              className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors border border-gray-300 dark:border-gray-600 rounded-md p-2 mr-2"
+            >
+              {theme === "light" ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </button>
 
             {/* Campaigns Link */}
             <Link
@@ -100,10 +106,23 @@ const Navbar = () => {
                 {/* User Menu */}
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-200">
-                    {
-                      user.avatar ? (<img src={user.avatar} alt="User Avatar" className="h-10 w-10 rounded-full" />) : (<User className="h-5 w-5" />)
-                    }
-                    <span className="font-medium">{user.name}</span>
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt="User Avatar"
+                        className="h-10 w-10 rounded-full"
+                      />
+                    ) : (
+                      <User className="h-5 w-5" />
+                    )}
+                    <Link
+                      to="/profile"
+                      className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                    >
+                      <span className="font-medium hover:underline cursor-pointer font-bold">
+                        {user.name}
+                      </span>
+                    </Link>
                   </div>
                   <button
                     onClick={handleLogout}

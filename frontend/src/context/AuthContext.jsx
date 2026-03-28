@@ -54,11 +54,17 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Update user data (for profile updates)
+  const updateUser = (userData) => {
+    setUser({ ...user, ...userData });
+  };
+
   const value = {
     user,
     loading,
     login,
     logout,
+    updateUser,
     isAuthenticated: !!user,
   };
 

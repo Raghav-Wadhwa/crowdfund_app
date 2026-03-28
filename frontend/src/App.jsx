@@ -17,6 +17,7 @@ import CampaignDetail from './pages/CampaignDetail';
 import CreateCampaign from './pages/CreateCampaign';
 import EditCampaign from './pages/EditCampaign';
 import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
 
 // Components
 import Navbar from './components/Navbar';
@@ -64,6 +65,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+              />
           </Routes>
 
           {/* Toast notifications */}
