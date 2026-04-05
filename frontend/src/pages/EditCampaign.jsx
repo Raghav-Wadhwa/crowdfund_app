@@ -45,7 +45,7 @@ const EditCampaign = () => {
 
   const fetchCampaign = async () => {
     try {
-      const response = await api.get(`/campaigns.list/${id}`);
+      const response = await api.get(`/campaign.get/${id}`);
       const campaign = response.data.campaign;
       
       // Check authorization
@@ -105,7 +105,7 @@ const EditCampaign = () => {
     setSubmitting(true);
 
     try {
-      await api.put(`/campaigns.list/${id}`, formData);
+      await api.put(`/campaign.update/${id}`, formData);
       toast.success('Campaign updated successfully!');
       navigate(`/campaigns/${id}`);
     } catch (error) {

@@ -10,7 +10,7 @@ import api from '../utils/api';
 import toast from 'react-hot-toast';
 import DonateModal from '../components/DonateModal';
 import { useAuth } from '../context/AuthContext';
-import { Edit } from 'lucide-react';
+import { Edit, Share2, Check } from 'lucide-react';
 
 const CampaignDetail = () => {
   const { id } = useParams();
@@ -20,6 +20,8 @@ const CampaignDetail = () => {
   const [loading, setLoading] = useState(true);
   // STEP 2A: Add state to control modal visibility
   const [showModal, setShowModal] = useState(false);
+  // State for copy feedback
+  const [copied, setCopied] = useState(false);
 
 
   const setEdit = () => {
@@ -35,7 +37,7 @@ const CampaignDetail = () => {
 
   const fetchCampaign = async () => {
     try {
-      const response = await api.get(`/campaigns.list/${id}`);
+      const response = await api.get(`/campaign.get/${id}`);
       setCampaign(response.data.campaign);
     } catch (error) {
       toast.error('Failed to load campaign');
@@ -55,6 +57,31 @@ const CampaignDetail = () => {
   const handleEdit = () => {
     // Navigate to edit page or open edit modal
     navigate(`/campaigns/${id}/edit`);
+  };
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}/campaigns/${id}`;
+    
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      toast.success('Link copied to clipboard!');
+      
+      // Reset the copied state after 2 seconds
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = shareUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      setCopied(true);
+      toast.success('Link copied to clipboard!');
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   if (loading) {
@@ -80,9 +107,15 @@ const CampaignDetail = () => {
           {/* Campaign Image */}
           <div className="h-96 bg-gradient-to-r from-primary-400 to-primary-600 flex items-center justify-center">
             {campaign.image ? (
-              <img src={campaign.image} alt={campaign.title} className="w-full h-full object-cover" />
+              <img
+                src={campaign.image}
+                alt={campaign.title}
+                className="w-full h-full object-cover"
+              />
             ) : (
-              <div className="text-white text-9xl font-bold">{campaign.title.charAt(0)}</div>
+              <div className="text-white text-9xl font-bold">
+                {campaign.title.charAt(0)}
+              </div>
             )}
           </div>
 
@@ -95,21 +128,49 @@ const CampaignDetail = () => {
             </div>
 
             <div className="flex justify-between items-start mb-4">
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">{campaign.title}</h1>
-              
-              {/* Edit button - only visible to creator or admin */}
-              {canEdit() && (
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+                {campaign.title}
+              </h1>
+              <div className="flex items-center space-x-3">
+                {/* Share button */}
                 <button
-                  onClick={handleEdit}
-                  className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
+                  onClick={handleShare}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 font-medium ${
+                    copied
+                      ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
+                      : 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-900/50'
+                  }`}
+                  title={copied ? 'Copied!' : 'Share campaign'}
                 >
-                  <Edit className="h-5 w-5" />
-                  <span>Edit</span>
+                  {copied ? (
+                    <>
+                      <Check className="h-5 w-5" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="h-5 w-5" />
+                      <span>Share</span>
+                    </>
+                  )}
                 </button>
-              )}
+
+                {/* Edit button - only visible to creator or admin */}
+                {canEdit() && (
+                  <button
+                    onClick={handleEdit}
+                    className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
+                  >
+                    <Edit className="h-5 w-5" />
+                    <span>Edit</span>
+                  </button>
+                )}
+              </div>
             </div>
-            
-            <p className="text-gray-600 dark:text-gray-400 text-lg mb-8 whitespace-pre-wrap">{campaign.description}</p>
+
+            <p className="text-gray-600 dark:text-gray-400 text-lg mb-8 whitespace-pre-wrap">
+              {campaign.description}
+            </p>
 
             {/* STEP 2B: Add "Back This Campaign" button */}
             <button
@@ -118,25 +179,33 @@ const CampaignDetail = () => {
             >
               Back This Campaign
             </button>
- 
+
             {/* Progress Section */}
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-8 transition-colors">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Raised</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">
+                    Raised
+                  </p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     ${campaign.currentAmount.toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Goal</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">
+                    Goal
+                  </p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     ${campaign.goalAmount.toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Backers</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{campaign.donorsCount}</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">
+                    Backers
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {campaign.donorsCount}
+                  </p>
                 </div>
               </div>
 
@@ -146,18 +215,24 @@ const CampaignDetail = () => {
                   style={{
                     width: `${Math.min(
                       (campaign.currentAmount / campaign.goalAmount) * 100,
-                      100
+                      100,
                     )}%`,
                   }}
                 ></div>
               </div>
-              <p className="text-right text-sm text-gray-600 dark:text-gray-400">{Math.round(campaign.progress)}% funded</p>
+              <p className="text-right text-sm text-gray-600 dark:text-gray-400">
+                {Math.round(campaign.progress)}% funded
+              </p>
             </div>
 
             {/* Creator Info */}
             <div className="border-t dark:border-gray-700 pt-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Campaign Creator</h3>
-              <p className="text-gray-600 dark:text-gray-400">{campaign.creator.name}</p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Campaign Creator
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                {campaign.creator.name}
+              </p>
             </div>
           </div>
         </div>

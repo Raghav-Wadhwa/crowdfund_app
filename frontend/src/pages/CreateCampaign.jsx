@@ -44,7 +44,7 @@ const CreateCampaign = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/campaigns.list', {
+      const response = await api.post('/campaign.create', {
         ...formData,
         goalAmount: parseFloat(formData.goalAmount),
       });
