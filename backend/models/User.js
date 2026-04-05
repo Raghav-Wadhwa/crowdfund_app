@@ -39,6 +39,10 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'admin'], // Only allow these values
       default: 'user',
     },
+    isVerified: {
+      type: Boolean,
+      default: false, // Email verification status
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt fields

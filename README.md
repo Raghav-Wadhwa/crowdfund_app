@@ -82,7 +82,21 @@ cat > .env <<EOF
 MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/crowfund
 PORT=5001
 JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
-EOF
+
+# Email Configuration (for OTP verification)
+# Option 1: Gmail SMTP (requires App Password, not your regular password)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-gmail-app-password
+
+# Option 2: Other email providers (e.g., SendGrid, AWS SES, etc.)
+# SMTP_HOST=smtp.sendgrid.net
+# SMTP_PORT=587
+# SMTP_USER=apikey
+# SMTP_PASS=your-sendgrid-api-key
+
+APP_NAME=Seedling
 
 # Start backend server
 npm run dev
@@ -135,18 +149,20 @@ npm run dev
 ### Authentication (`/api/auth`)
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
-| POST | `/register` | Register new user | No |
+| POST | `/register` | Register new user (sends OTP) | No |
+| POST | `/verify-otp` | Verify OTP and complete registration | No |
+| POST | `/resend-otp` | Resend OTP code | No |
 | POST | `/login` | Login user | No |
 | GET | `/me` | Get current user | Yes |
 
-### Campaigns (`/api/campaigns.list`)
+### Campaigns (Action-Based Routes)
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
-| GET | `/` | Get all campaigns | No |
-| GET | `/:id` | Get single campaign | No |
-| POST | `/` | Create campaign | Yes |
-| PUT | `/:id` | Update campaign | Yes (creator only) |
-| DELETE | `/:id` | Delete campaign | Yes (creator only) |
+| GET | `/api/campaigns.list` | Get all campaigns | No |
+| GET | `/api/campaign.get/:id` | Get single campaign | No |
+| POST | `/api/campaign.create` | Create campaign | Yes |
+| PUT | `/api/campaign.update/:id` | Update campaign | Yes (creator only) |
+| DELETE | `/api/campaign.delete/:id` | Delete campaign | Yes (creator only) |
 
 ### Donations (`/api/donations`)
 | Method | Endpoint | Description | Auth Required |

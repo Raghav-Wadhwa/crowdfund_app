@@ -50,8 +50,19 @@ app.use('/uploads', express.static('uploads'));
 // Routes
 // All authentication routes (register, login) will be prefixed with /api/auth
 app.use('/api/auth', authRoutes);
-// Campaign routes (create, get, update campaigns) prefixed with /api/campaigns.list
+
+// Campaign routes - Action-based naming (Option 2)
+// GET all campaigns
 app.use('/api/campaigns.list', campaignRoutes);
+// GET single campaign
+app.use('/api/campaign.get', campaignRoutes);
+// POST create campaign
+app.use('/api/campaign.create', campaignRoutes);
+// PUT update campaign
+app.use('/api/campaign.update', campaignRoutes);
+// DELETE campaign
+app.use('/api/campaign.delete', campaignRoutes);
+
 // Donation routes prefixed with /api/donations
 app.use('/api/donations', donationRoutes);
 
@@ -94,4 +105,3 @@ process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', err);
   process.exit(1);
 });
-

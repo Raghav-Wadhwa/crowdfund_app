@@ -9,7 +9,9 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
+const OTP = require('../models/OTP');
 const auth = require('../middleware/auth');
+const { sendOTPEmail, generateOTP } = require('../utils/emailService');
 
 const router = express.Router();
 
@@ -22,7 +24,7 @@ const generateToken = (userId) => {
 
 /**
  * @route   POST /api/auth/register
- * @desc    Register a new user
+ * @desc    Register a new user - sends OTP for verification
  * @access  Public
  */
 router.post(
@@ -54,36 +56,52 @@ router.post(
       }
 
       const { name, email, password } = req.body;
+      const normalizedEmail = email.toLowerCase();
 
-      // Check if user already exists
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
+      // Check if user already exists and is verified
+      const existingUser = await User.findOne({ email: normalizedEmail });
+      if (existingUser && existingUser.isVerified) {
         return res.status(400).json({
           success: false,
           message: 'User with this email already exists',
         });
       }
 
-      // Create new user (password will be hashed by pre-save hook)
-      const user = new User({ name, email, password });
-      await user.save();
-      console.log('User created:', user);
-      console.log('User ID:', user._id);
-      // Generate token for the database user
-      const token = generateToken(user._id);
+      // Delete any existing OTP for this email (case-insensitive)
+      await OTP.deleteOne({ email: normalizedEmail });
 
-      res.status(201).json({
+      // Generate OTP
+      const otp = generateOTP();
+      console.log(`[OTP Register] Generated OTP for ${normalizedEmail}: ${otp}`);
+
+      // Store OTP with user data temporarily
+      const otpEntry = new OTP({
+        email: normalizedEmail,
+        otp,
+        userData: { name, password },
+      });
+      await otpEntry.save();
+      console.log(`[OTP Register] Saved to database`);
+
+      // Send OTP email
+      console.log(`[OTP Register] Attempting to send email to: ${email}`);
+      const emailSent = await sendOTPEmail(email, otp, name);
+      console.log(`[OTP Register] Email send result: ${emailSent ? 'SUCCESS' : 'FAILED'}`);
+
+      if (!emailSent) {
+        // Delete OTP if email failed
+        await OTP.deleteOne({ email: normalizedEmail });
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to send verification email. Please check your SMTP settings and try again.',
+        });
+      }
+
+      res.status(200).json({
         success: true,
-        message: 'User registered successfully',
-        token,
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          avatar: user.avatar,
-          createdAt: user.createdAt,
-        },
+        message: 'Verification code sent to your email',
+        email, // Return email for the verification step
+        expiresIn: 600, // 10 minutes in seconds
       });
     } catch (error) {
       console.error('Registration error:', error);
@@ -131,7 +149,8 @@ router.post(
       if (!user) {
         return res.status(401).json({
           success: false,
-          message: 'Invalid email or password',
+          message: 'No account found with this email. Please sign up to create an account.',
+          suggestion: 'signup',
         });
       }
 
@@ -143,6 +162,47 @@ router.post(
         return res.status(401).json({
           success: false,
           message: 'Invalid email or password',
+        });
+      }
+
+      // Check if user is verified
+      if (!user.isVerified) {
+        // For existing users who weren't verified (created before OTP system)
+        // Create an OTP entry so they can verify now
+        console.log(`[Login] Unverified user ${email} attempting login. Creating OTP...`);
+
+        // Delete any existing OTP for this email
+        await OTP.deleteOne({ email: email.toLowerCase() });
+
+        // Generate OTP
+        const otp = generateOTP();
+
+        // Store OTP with user data (we use existing user data, but require them to re-verify)
+        const otpEntry = new OTP({
+          email: email.toLowerCase(),
+          otp,
+          userData: { name: user.name, password }, // Store current password attempt
+        });
+        await otpEntry.save();
+
+        console.log(`[Login] Created OTP for existing user: ${otp}`);
+
+        // Send OTP email
+        const emailSent = await sendOTPEmail(email, otp, user.name);
+
+        if (!emailSent) {
+          await OTP.deleteOne({ email: email.toLowerCase() });
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to send verification email. Please try again.',
+          });
+        }
+
+        return res.status(403).json({
+          success: false,
+          message: 'Email not verified. Please verify your email first.',
+          needsVerification: true,
+          email: user.email,
         });
       }
 
@@ -159,6 +219,7 @@ router.post(
           email: user.email,
           role: user.role,
           avatar: user.avatar,
+          isVerified: user.isVerified,
           createdAt: user.createdAt,
         },
       });
@@ -167,6 +228,204 @@ router.post(
       res.status(500).json({
         success: false,
         message: 'Server error during login',
+        error: error.message,
+      });
+    }
+  }
+);
+
+/**
+ * @route   POST /api/auth/verify-otp
+ * @desc    Verify OTP and complete registration
+ * @access  Public
+ */
+router.post(
+  '/verify-otp',
+  [
+    body('email').isEmail().normalizeEmail(),
+    body('otp')
+      .isLength({ min: 6, max: 6 })
+      .isNumeric()
+      .withMessage('OTP must be 6 digits'),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array(),
+        });
+      }
+
+      const { email, otp } = req.body;
+      const normalizedEmail = email.toLowerCase();
+
+      console.log(`[OTP Verify] Looking up OTP for:`, normalizedEmail);
+
+      // Find OTP entry
+      const otpEntry = await OTP.findOne({ email: normalizedEmail });
+
+      if (!otpEntry) {
+        return res.status(400).json({
+          success: false,
+          message: 'OTP expired or invalid. Please request a new one.',
+        });
+      }
+
+      // Check if OTP matches
+      if (otpEntry.otp !== otp) {
+        // Increment attempts
+        otpEntry.attempts += 1;
+        await otpEntry.save();
+
+        // Check if max attempts reached
+        if (otpEntry.attempts >= 3) {
+          await OTP.deleteOne({ email: normalizedEmail });
+          return res.status(400).json({
+            success: false,
+            message: 'Too many failed attempts. Please request a new OTP.',
+          });
+        }
+
+        return res.status(400).json({
+          success: false,
+          message: `Invalid OTP. ${3 - otpEntry.attempts} attempts remaining.`,
+        });
+      }
+
+      // OTP verified - check if user exists or create new
+      const { userData } = otpEntry;
+
+      // Check if user already exists (for backwards compatibility with old unverified accounts)
+      let user = await User.findOne({ email: normalizedEmail });
+
+      if (user) {
+        // Existing user - just mark as verified
+        console.log(`[OTP Verify] Existing user found, marking as verified: ${user._id}`);
+        user.isVerified = true;
+        await user.save();
+      } else {
+        // New user - create account
+        console.log(`[OTP Verify] Creating new user`);
+        user = new User({
+          name: userData.name,
+          email: normalizedEmail,
+          password: userData.password,
+          isVerified: true,
+        });
+        await user.save();
+      }
+
+      // Delete OTP after successful verification
+      await OTP.deleteOne({ email: normalizedEmail });
+
+      console.log('[OTP Verify] User verified:', user._id);
+
+      // Generate token
+      const token = generateToken(user._id);
+
+      res.status(201).json({
+        success: true,
+        message: 'Email verified successfully! Welcome to SeedLing.',
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          avatar: user.avatar,
+          isVerified: user.isVerified,
+          createdAt: user.createdAt,
+        },
+      });
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error during verification',
+        error: error.message,
+      });
+    }
+  }
+);
+
+/**
+ * @route   POST /api/auth/resend-otp
+ * @desc    Resend OTP to email
+ * @access  Public
+ */
+router.post(
+  '/resend-otp',
+  [
+    body('email').isEmail().normalizeEmail(),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please provide a valid email',
+        });
+      }
+
+      const { email } = req.body;
+      const normalizedEmail = email.toLowerCase();
+
+      console.log(`[OTP Resend] Looking up OTP for:`, normalizedEmail);
+
+      // Check if there's a pending OTP
+      const otpEntry = await OTP.findOne({ email: normalizedEmail });
+
+      if (!otpEntry) {
+        return res.status(400).json({
+          success: false,
+          message: 'No pending verification found. Please register again.',
+        });
+      }
+
+      // Check if last OTP was sent less than 60 seconds ago (rate limiting)
+      const timeSinceLastOTP = Date.now() - otpEntry.createdAt.getTime();
+      if (timeSinceLastOTP < 60000) {
+        const waitTime = Math.ceil((60000 - timeSinceLastOTP) / 1000);
+        return res.status(429).json({
+          success: false,
+          message: `Please wait ${waitTime} seconds before requesting a new OTP.`,
+        });
+      }
+
+      // Generate new OTP
+      const newOTP = generateOTP();
+      console.log(`[OTP Resend] New OTP generated: ${newOTP}`);
+
+      otpEntry.otp = newOTP;
+      otpEntry.expiresAt = new Date(Date.now() + 10 * 60 * 1000); // Reset expiry
+      otpEntry.attempts = 0; // Reset attempts
+      await otpEntry.save();
+
+      // Send new OTP email
+      const emailSent = await sendOTPEmail(email, newOTP, otpEntry.userData.name);
+      console.log(`[OTP Resend] Email send result:`, emailSent ? 'SUCCESS' : 'FAILED');
+
+      if (!emailSent) {
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to send verification email. Please try again.',
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'New verification code sent to your email',
+        expiresIn: 600,
+      });
+    } catch (error) {
+      console.error('Resend OTP error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error',
         error: error.message,
       });
     }
