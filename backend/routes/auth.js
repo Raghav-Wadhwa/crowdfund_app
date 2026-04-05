@@ -88,20 +88,20 @@ router.post(
       const emailSent = await sendOTPEmail(email, otp, name);
       console.log(`[OTP Register] Email send result: ${emailSent ? 'SUCCESS' : 'FAILED'}`);
 
+      // Even if email fails, we still create the OTP and allow verification
+      // This is a fallback for production environments where SMTP might not be configured
       if (!emailSent) {
-        // Delete OTP if email failed
-        await OTP.deleteOne({ email: normalizedEmail });
-        return res.status(500).json({
-          success: false,
-          message: 'Failed to send verification email. Please check your SMTP settings and try again.',
-        });
+        console.log(`[OTP Register] Email failed but OTP still saved for manual verification`);
       }
 
       res.status(200).json({
         success: true,
-        message: 'Verification code sent to your email',
+        message: emailSent
+          ? 'Verification code sent to your email'
+          : 'Verification code generated (email not sent - check server logs for OTP)',
         email, // Return email for the verification step
         expiresIn: 600, // 10 minutes in seconds
+        emailSent, // Tell frontend if email was actually sent
       });
     } catch (error) {
       console.error('Registration error:', error);
@@ -409,17 +409,13 @@ router.post(
       const emailSent = await sendOTPEmail(email, newOTP, otpEntry.userData.name);
       console.log(`[OTP Resend] Email send result:`, emailSent ? 'SUCCESS' : 'FAILED');
 
-      if (!emailSent) {
-        return res.status(500).json({
-          success: false,
-          message: 'Failed to send verification email. Please try again.',
-        });
-      }
-
       res.json({
         success: true,
-        message: 'New verification code sent to your email',
+        message: emailSent
+          ? 'New verification code sent to your email'
+          : 'New verification code generated (check server logs for OTP)',
         expiresIn: 600,
+        emailSent,
       });
     } catch (error) {
       console.error('Resend OTP error:', error);

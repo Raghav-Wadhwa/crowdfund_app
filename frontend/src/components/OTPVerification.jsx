@@ -12,12 +12,13 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { Mail, ArrowRight, RefreshCw, Check } from 'lucide-react';
 
-const OTPVerification = ({ email, onBack }) => {
+const OTPVerification = ({ email, onBack, emailSent = true }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
+  const [lastEmailSent, setLastEmailSent] = useState(emailSent);
   const inputRefs = useRef([]);
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -132,7 +133,14 @@ const OTPVerification = ({ email, onBack }) => {
       const response = await api.post('/auth/resend-otp', { email });
 
       if (response.data.success) {
-        toast.success('New verification code sent!');
+        const wasEmailSent = response.data.emailSent;
+        setLastEmailSent(wasEmailSent);
+
+        if (wasEmailSent) {
+          toast.success('New verification code sent!');
+        } else {
+          toast.success('New code generated! Check with administrator.');
+        }
         setResendTimer(60);
         setCanResend(false);
         setOtp(['', '', '', '', '', '']);
@@ -159,10 +167,19 @@ const OTPVerification = ({ email, onBack }) => {
       <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
         Verify Your Email
       </h2>
-      <p className="text-gray-600 text-center mb-8">
+      <p className="text-gray-600 text-center mb-4">
         Enter the 6-digit code sent to{' '}
         <span className="font-medium text-gray-900">{email}</span>
       </p>
+
+      {/* Warning if email wasn't sent */}
+      {!lastEmailSent && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
+          <p className="text-amber-800 text-sm text-center">
+            ⚠️ Email delivery failed. Please contact the administrator for your verification code.
+          </p>
+        </div>
+      )}
 
       {/* OTP Inputs */}
       <div className="flex justify-center gap-2 mb-8">

@@ -9,15 +9,28 @@ const nodemailer = require('nodemailer');
 
 // Create transporter using environment variables
 const createTransporter = () => {
-  return nodemailer.createTransport({
+  const isGmail = (process.env.SMTP_HOST || '').includes('gmail');
+
+  const config = {
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: process.env.SMTP_PORT || 587,
+    port: parseInt(process.env.SMTP_PORT) || 587,
     secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
-  });
+    // Add TLS options for cloud platforms like Render
+    tls: {
+      rejectUnauthorized: false, // Allow self-signed certs (needed on some cloud platforms)
+    },
+  };
+
+  // Gmail-specific settings
+  if (isGmail) {
+    console.log('[Email] Using Gmail SMTP with TLS settings');
+  }
+
+  return nodemailer.createTransport(config);
 };
 
 /**
@@ -97,10 +110,22 @@ OTP: ${otp}
     console.error('❌ Error sending OTP email:');
     console.error('   Error message:', error.message);
     console.error('   Error code:', error.code);
+    console.error('   Error stack:', error.stack);
+    // Log full error response if available (from SMTP server)
+    if (error.response) {
+      console.error('   SMTP Response:', error.response);
+    }
+    if (error.responseCode) {
+      console.error('   SMTP Response Code:', error.responseCode);
+    }
+    if (error.command) {
+      console.error('   Failed Command:', error.command);
+    }
     console.error('   SMTP_HOST:', process.env.SMTP_HOST);
     console.error('   SMTP_PORT:', process.env.SMTP_PORT);
+    console.error('   SMTP_SECURE:', process.env.SMTP_SECURE);
     console.error('   SMTP_USER:', process.env.SMTP_USER ? 'Set (hidden)' : 'NOT SET');
-    console.error('   SMTP_PASS:', process.env.SMTP_PASS ? 'Set (hidden)' : 'NOT SET');
+    console.error('   SMTP_PASS:', process.env.SMTP_PASS ? 'Set (length: ' + (process.env.SMTP_PASS?.length || 0) + ')' : 'NOT SET');
     return false;
   }
 };

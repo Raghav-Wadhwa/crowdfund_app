@@ -21,6 +21,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState('form'); // 'form' | 'verify'
   const [registeredEmail, setRegisteredEmail] = useState('');
+  const [emailSent, setEmailSent] = useState(true); // Track if email was actually sent
 
   const handleChange = (e) => {
     setFormData({
@@ -37,7 +38,17 @@ const Register = () => {
       const response = await api.post('/auth/register', formData);
 
       if (response.data.success) {
-        toast.success('Verification code sent to your email!');
+        const wasEmailSent = response.data.emailSent;
+        setEmailSent(wasEmailSent);
+
+        if (wasEmailSent) {
+          toast.success('Verification code sent to your email!');
+        } else {
+          toast.success(
+            'Account created! Please contact support for your verification code.',
+            { duration: 6000 }
+          );
+        }
         setRegisteredEmail(formData.email);
         setStep('verify');
       }
@@ -170,6 +181,7 @@ const Register = () => {
             <OTPVerification
               email={registeredEmail}
               onBack={handleBackToForm}
+              emailSent={emailSent}
             />
           )}
         </div>
