@@ -61,6 +61,8 @@ const CampaignDetail = () => {
 
   const handleShare = async () => {
     const shareUrl = `${window.location.origin}/campaigns/${id}`;
+    console.log(window.location.origin);
+    console.log(shareUrl);
     
     try {
       await navigator.clipboard.writeText(shareUrl);
