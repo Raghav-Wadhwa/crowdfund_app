@@ -250,10 +250,10 @@ router.get('/:id', async (req, res) => {
 
 /**
  * @route   PUT /api/campaign.update/:id
- * @desc    Update campaign (only by creator)
+ * @desc    Update campaign (only by creator, with optional image upload)
  * @access  Private
  */
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, upload.single('image'), async (req, res) => {
   try {
     const campaign = await Campaign.findById(req.params.id);
 
@@ -267,7 +267,7 @@ router.put('/:id', auth, async (req, res) => {
     // Check if user is the creator or an admin
     const isCreator = campaign.creator.toString() === req.user._id.toString();
     const isAdmin = req.user.role === 'admin';
-    
+
     if (!isCreator && !isAdmin) {
       return res.status(403).json({
         success: false,
@@ -282,13 +282,21 @@ router.put('/:id', auth, async (req, res) => {
       'category',
       'goalAmount',
       'deadline',
-      'image',
     ];
     allowedUpdates.forEach((field) => {
       if (req.body[field] !== undefined) {
         campaign[field] = req.body[field];
       }
     });
+
+    // Handle image upload if provided
+    if (req.file) {
+      const publicId = `campaign-${req.params.id}-${Date.now()}`;
+      const uploadResult = await uploadImage(req.file.path, 'campaigns', publicId);
+      if (uploadResult.success) {
+        campaign.image = uploadResult.url;
+      }
+    }
 
     await campaign.save();
     await campaign.populate('creator', 'name email avatar');

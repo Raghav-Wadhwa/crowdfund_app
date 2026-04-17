@@ -26,6 +26,7 @@ const EditCampaign = () => {
     deadline: '',
     image: '',
   });
+  const [campaignImage, setCampaignImage] = useState(null); // For new image upload
 
   // Categories from backend
   const categories = [
@@ -85,7 +86,7 @@ const EditCampaign = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validation
     if (formData.title.length < 5 || formData.title.length > 100) {
       toast.error('Title must be between 5 and 100 characters');
@@ -105,7 +106,25 @@ const EditCampaign = () => {
     setSubmitting(true);
 
     try {
-      await api.put(`/campaign.update/${id}`, formData);
+      // Create FormData to send campaign + optional new image
+      const formDataToSend = new FormData();
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('category', formData.category);
+      formDataToSend.append('goalAmount', formData.goalAmount);
+      formDataToSend.append('deadline', formData.deadline);
+
+      // If there's a new image file, append it
+      if (campaignImage) {
+        formDataToSend.append('image', campaignImage);
+      }
+
+      await api.put(`/campaign.update/${id}`, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
       toast.success('Campaign updated successfully!');
       navigate(`/campaigns/${id}`);
     } catch (error) {
@@ -237,19 +256,66 @@ const EditCampaign = () => {
             />
           </div>
 
-          {/* Image URL */}
+          {/* Campaign Image */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Image URL (Optional)
+              Campaign Image (Optional)
             </label>
-            <input
-              type="url"
-              name="image"
-              value={formData.image}
-              onChange={handleChange}
-              placeholder="https://example.com/image.jpg"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent outline-none transition-colors"
-            />
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors">
+              <input
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (file.size > 5 * 1024 * 1024) {
+                      toast.error('File too large. Max 5MB.');
+                      return;
+                    }
+                    setCampaignImage(file);
+                    toast.success('New image selected!');
+                  }
+                }}
+                className="hidden"
+                id="campaign-image"
+              />
+              <label htmlFor="campaign-image" className="cursor-pointer">
+                {campaignImage ? (
+                  <div className="space-y-2">
+                    <img
+                      src={URL.createObjectURL(campaignImage)}
+                      alt="New Preview"
+                      className="max-h-32 mx-auto rounded-lg"
+                    />
+                    <p className="text-sm text-primary-600 font-medium">
+                      {campaignImage.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Click to change image
+                    </p>
+                  </div>
+                ) : formData.image ? (
+                  <div className="space-y-2">
+                    <img
+                      src={formData.image}
+                      alt="Current"
+                      className="max-h-32 mx-auto rounded-lg"
+                    />
+                    <p className="text-sm text-gray-600">
+                      Current image (click to upload new)
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <p className="text-sm text-gray-600">Click to upload an image</p>
+                    <p className="text-xs text-gray-400">PNG, JPG, WebP up to 5MB</p>
+                  </div>
+                )}
+              </label>
+            </div>
           </div>
 
           {/* Buttons */}
