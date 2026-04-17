@@ -11,20 +11,50 @@
 
 const express = require('express');
 const { body, validationResult } = require('express-validator');
+const multer = require('multer');
+const path = require('path');
 const Campaign = require('../models/Campaign');
 const Donation = require('../models/Donation');
 const auth = require('../middleware/auth');
+const { uploadImage } = require('../utils/cloudinary');
 
 const router = express.Router();
 
+// Configure multer for temporary file storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/temp/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.'), false);
+  }
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+});
+
 /**
  * @route   POST /api/campaign.create
- * @desc    Create a new campaign
+ * @desc    Create a new campaign (with optional image upload)
  * @access  Private (only authenticated users)
  */
 router.post(
   '/',
   auth, // Require authentication
+  upload.single('image'), // Handle image upload
   [
     body('title')
       .trim()
@@ -65,8 +95,17 @@ router.post(
         });
       }
 
-      const { title, description, category, goalAmount, deadline, image } =
-        req.body;
+      const { title, description, category, goalAmount, deadline } = req.body;
+
+      // Handle image upload if provided
+      let imageUrl = '';
+      if (req.file) {
+        const publicId = `campaign-${Date.now()}`;
+        const uploadResult = await uploadImage(req.file.path, 'campaigns', publicId);
+        if (uploadResult.success) {
+          imageUrl = uploadResult.url;
+        }
+      }
 
       // Create campaign (creator is set from authenticated user)
       const campaign = new Campaign({
@@ -75,7 +114,7 @@ router.post(
         category,
         goalAmount,
         deadline,
-        image: image || '',
+        image: imageUrl,
         creator: req.user._id, // From auth middleware
       });
 
@@ -312,6 +351,27 @@ router.delete('/:id', auth, async (req, res) => {
       error: error.message,
     });
   }
+});
+
+// Error handling middleware for multer errors
+router.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        success: false,
+        message: 'File too large. Maximum size is 5MB.',
+      });
+    }
+  }
+
+  if (error.message?.includes('Invalid file type')) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+
+  next(error);
 });
 
 module.exports = router;

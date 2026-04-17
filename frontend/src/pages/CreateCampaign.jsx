@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import ImageUpload from '../components/ImageUpload';
 
 const CreateCampaign = () => {
   const [formData, setFormData] = useState({
@@ -16,8 +17,8 @@ const CreateCampaign = () => {
     category: 'Technology',
     goalAmount: '',
     deadline: '',
-    image: '',
   });
+  const [campaignImage, setCampaignImage] = useState(null); // For image upload after creation
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -44,9 +45,23 @@ const CreateCampaign = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/campaign.create', {
-        ...formData,
-        goalAmount: parseFloat(formData.goalAmount),
+      // Create FormData to send campaign + image together
+      const formDataToSend = new FormData();
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('category', formData.category);
+      formDataToSend.append('goalAmount', formData.goalAmount);
+      formDataToSend.append('deadline', formData.deadline);
+
+      // Append image if selected
+      if (campaignImage) {
+        formDataToSend.append('image', campaignImage);
+      }
+
+      const response = await api.post('/campaign.create', formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
       if (response.data.success) {
@@ -146,16 +161,52 @@ const CreateCampaign = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Image URL (optional)
+                Campaign Image (optional)
               </label>
-              <input
-                type="url"
-                name="image"
-                value={formData.image}
-                onChange={handleChange}
-                className="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                placeholder="https://example.com/image.jpg"
-              />
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.size > 5 * 1024 * 1024) {
+                        toast.error('File too large. Max 5MB.');
+                        return;
+                      }
+                      setCampaignImage(file);
+                      toast.success('Image selected! Will upload after campaign creation.');
+                    }
+                  }}
+                  className="hidden"
+                  id="campaign-image"
+                />
+                <label htmlFor="campaign-image" className="cursor-pointer">
+                  {campaignImage ? (
+                    <div className="space-y-2">
+                      <img
+                        src={URL.createObjectURL(campaignImage)}
+                        alt="Preview"
+                        className="max-h-32 mx-auto rounded-lg"
+                      />
+                      <p className="text-sm text-primary-600 font-medium">
+                        {campaignImage.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Click to change image
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <p className="text-sm text-gray-600">Click to upload an image</p>
+                      <p className="text-xs text-gray-400">PNG, JPG, WebP up to 5MB</p>
+                    </div>
+                  )}
+                </label>
+              </div>
             </div>
 
             <button

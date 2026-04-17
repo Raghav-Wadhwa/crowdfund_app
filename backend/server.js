@@ -30,6 +30,7 @@ if (process.env.MONGODB_URI) {
 const authRoutes = require('./routes/auth');
 const campaignRoutes = require('./routes/campaigns');
 const donationRoutes = require('./routes/donations');
+const uploadRoutes = require('./routes/upload');
 // Debug routes (dev only)
 const debugRoutes = require('./routes/debug');
 
@@ -65,6 +66,9 @@ app.use('/api/campaign.delete', campaignRoutes);
 
 // Donation routes prefixed with /api/donations
 app.use('/api/donations', donationRoutes);
+
+// Upload routes for Cloudinary image uploads
+app.use('/api/upload', uploadRoutes);
 
 // Register debug routes under /api/debug
 app.use('/api/debug', debugRoutes);

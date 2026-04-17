@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from "../context/AuthContext";
-import { User, Mail, Edit3 } from 'lucide-react';
+import { User, Mail, Edit3, Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
+import ImageUpload from '../components/ImageUpload';
 
 const Profile = () => {
     const { user, updateUser } = useAuth();
@@ -60,9 +61,9 @@ const Profile = () => {
                     <div className='flex flex-col items-center mb-8'>
                         <div className='relative'>
                             {user?.avatar ? (
-                                <img 
-                                    src={user.avatar} 
-                                    alt="Profile" 
+                                <img
+                                    src={user.avatar}
+                                    alt="Profile"
                                     className='w-24 h-24 rounded-full object-cover border-4 border-primary-100 dark:border-primary-900'
                                 />
                             ) : (
@@ -71,39 +72,37 @@ const Profile = () => {
                                 </div>
                             )}
                             {/* Edit Avatar Button */}
-                            <button 
-                                onClick={() => handleEdit('avatar')}
+                            <button
+                                onClick={() => setEditingField(editingField === 'avatar' ? null : 'avatar')}
                                 className='absolute bottom-0 right-0 bg-primary-600 hover:bg-primary-700 text-white p-2 rounded-full shadow-md transition-colors'
                             >
-                                <Edit3 className='w-4 h-4' />
+                                <Camera className='w-4 h-4' />
                             </button>
                         </div>
-                        
-                        {/* Avatar URL Input - shown when editing avatar */}
+
+                        {/* Avatar Upload - shown when editing avatar */}
                         {editingField === 'avatar' && (
-                            <div className='mt-4 w-full max-w-xs space-y-2'>
-                                <input 
-                                    type="url"
-                                    value={editValue}
-                                    onChange={(e) => setEditValue(e.target.value)}
-                                    placeholder="Enter image URL..."
-                                    className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500'
-                                    autoFocus
+                            <div className='mt-4 w-full max-w-xs'>
+                                <ImageUpload
+                                    endpoint='/upload/avatar'
+                                    currentImage={user?.avatar}
+                                    onUploadSuccess={(url) => {
+                                        updateUser({ avatar: url });
+                                        setEditingField(null);
+                                        toast.success('Avatar updated!');
+                                    }}
+                                    onUploadError={() => {
+                                        toast.error('Failed to upload avatar');
+                                    }}
+                                    label="Upload New Avatar"
+                                    maxSizeMB={2}
                                 />
-                                <div className='flex space-x-2'>
-                                    <button 
-                                        onClick={handleSave}
-                                        className='flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors'
-                                    >
-                                        Save
-                                    </button>
-                                    <button 
-                                        onClick={handleCancel}
-                                        className='flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg text-sm font-medium transition-colors'
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
+                                <button
+                                    onClick={() => setEditingField(null)}
+                                    className='mt-2 w-full text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                >
+                                    Cancel
+                                </button>
                             </div>
                         )}
                     </div>
