@@ -8,6 +8,7 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { uploadImage, deleteImage, getPublicIdFromUrl } = require('../utils/cloudinary');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
@@ -15,10 +16,17 @@ const Campaign = require('../models/Campaign');
 
 const router = express.Router();
 
+// Ensure uploads/temp directory exists
+const uploadDir = path.join(__dirname, '..', 'uploads', 'temp');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+  console.log('[Upload] Created uploads/temp directory');
+}
+
 // Configure multer for temporary file storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/temp/'); // Temporary folder
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -92,7 +100,8 @@ router.post('/avatar', auth, upload.single('image'), async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Avatar upload error:', error);
+    console.error('[Upload Avatar] Error:', error.message);
+    console.error('[Upload Avatar] Stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Server error during upload',

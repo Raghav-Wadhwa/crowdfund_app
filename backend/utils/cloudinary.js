@@ -14,6 +14,13 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Log configuration status (without exposing secrets)
+console.log('[Cloudinary] Config check:', {
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'Set' : 'NOT SET',
+  api_key: process.env.CLOUDINARY_API_KEY ? 'Set' : 'NOT SET',
+  api_secret: process.env.CLOUDINARY_API_SECRET ? 'Set' : 'NOT SET',
+});
+
 /**
  * Upload image to Cloudinary
  * @param {string} filePath - Path to the uploaded file
@@ -22,6 +29,15 @@ cloudinary.config({
  * @returns {Promise<Object>} Cloudinary upload result with secure_url
  */
 const uploadImage = async (filePath, folder, publicId) => {
+  // Check if Cloudinary is properly configured
+  if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+    console.error('[Cloudinary] Missing configuration');
+    return {
+      success: false,
+      error: 'Cloudinary not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.',
+    };
+  }
+
   try {
     const result = await cloudinary.uploader.upload(filePath, {
       folder: `seedling/${folder}`,
