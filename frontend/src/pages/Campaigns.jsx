@@ -8,20 +8,23 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
-import { Search } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
 
 const Campaigns = () => {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'active', 'completed'
 
   useEffect(() => {
     fetchCampaigns();
-  }, []);
+  }, [statusFilter]);
 
   const fetchCampaigns = async () => {
     try {
-      const response = await api.get('/campaigns.list');
+      setLoading(true);
+      const params = statusFilter !== 'all' ? { status: statusFilter } : {};
+      const response = await api.get('/campaigns.list', { params });
       setCampaigns(response.data.campaigns);
     } catch (error) {
       toast.error('Failed to load campaigns');
@@ -53,9 +56,9 @@ const Campaigns = () => {
           </p>
         </div>
 
-        {/* Search */}
-        <div className="mb-8">
-          <div className="relative max-w-md">
+        {/* Search and Filter */}
+        <div className="mb-8 flex flex-col sm:flex-row gap-4">
+          <div className="relative max-w-md flex-1">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400 dark:text-gray-500" />
             </div>
@@ -66,6 +69,28 @@ const Campaigns = () => {
               onChange={(e) => setSearch(e.target.value)}
               className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent outline-none transition-colors"
             />
+          </div>
+
+          {/* Status Filter Toggle */}
+          <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-1 rounded-lg border border-gray-300 dark:border-gray-600">
+            <Filter className="h-4 w-4 text-gray-500 dark:text-gray-400 ml-2" />
+            {[
+              { key: 'all', label: 'All' },
+              { key: 'active', label: 'Active' },
+              { key: 'completed', label: 'Completed' },
+            ].map((option) => (
+              <button
+                key={option.key}
+                onClick={() => setStatusFilter(option.key)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  statusFilter === option.key
+                    ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -99,9 +124,18 @@ const Campaigns = () => {
 
                 {/* Campaign Info */}
                 <div className="p-6">
-                  <div className="mb-2">
+                  <div className="mb-2 flex gap-2">
                     <span className="inline-block bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 text-xs px-2 py-1 rounded-full font-semibold">
                       {campaign.category}
+                    </span>
+                    <span
+                      className={`inline-block text-xs px-2 py-1 rounded-full font-semibold ${
+                        campaign.status === 'active'
+                          ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                      }`}
+                    >
+                      {campaign.status === 'active' ? 'Active' : 'Completed'}
                     </span>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">

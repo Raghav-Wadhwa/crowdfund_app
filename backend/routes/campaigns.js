@@ -148,7 +148,7 @@ router.get('/', async (req, res) => {
   try {
     const {
       category,
-      status = 'active',
+      status, // No default - show all campaigns if not specified
       sort = '-createdAt', // Default: newest first
       page = 1,
       limit = 12,
@@ -158,7 +158,7 @@ router.get('/', async (req, res) => {
     // Build query object
     const query = {};
     if (category) query.category = category;
-    if (status) query.status = status;
+    if (status && status !== 'all') query.status = status; // Only filter if specified and not 'all'
     if (search) {
       // Search in title and description
       query.$or = [
