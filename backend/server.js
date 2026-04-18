@@ -31,6 +31,7 @@ const authRoutes = require('./routes/auth');
 const campaignRoutes = require('./routes/campaigns');
 const donationRoutes = require('./routes/donations');
 const uploadRoutes = require('./routes/upload');
+const paymentRoutes = require('./routes/payments');
 // Debug routes (dev only)
 const debugRoutes = require('./routes/debug');
 
@@ -69,6 +70,9 @@ app.use('/api/donations', donationRoutes);
 
 // Upload routes for Cloudinary image uploads
 app.use('/api/upload', uploadRoutes);
+
+// Payment routes for Razorpay integration
+app.use('/api/payments', paymentRoutes);
 
 // Register debug routes under /api/debug
 app.use('/api/debug', debugRoutes);

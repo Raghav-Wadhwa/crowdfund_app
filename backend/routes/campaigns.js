@@ -157,7 +157,18 @@ router.get('/', async (req, res) => {
 
     // Build query object
     const query = {};
-    if (category) query.category = category;
+    
+    // Handle category filter (single or multiple)
+    if (category) {
+      // Check if it's a comma-separated list (multiple categories)
+      const categories = category.includes(',') ? category.split(',') : [category];
+      if (categories.length === 1) {
+        query.category = category;
+      } else {
+        query.category = { $in: categories };
+      }
+    }
+    
     if (status && status !== 'all') query.status = status; // Only filter if specified and not 'all'
     if (search) {
       // Search in title and description

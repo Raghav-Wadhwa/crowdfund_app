@@ -15,15 +15,34 @@ const Campaigns = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'active', 'completed'
+  const [selectedCategories, setSelectedCategories] = useState([]); // Multi-select categories
+
+  // Categories list (same as backend)
+  const categories = [
+    'Technology',
+    'Education',
+    'Healthcare',
+    'Art',
+    'Environment',
+    'Business',
+    'Social',
+    'Other',
+  ];
 
   useEffect(() => {
     fetchCampaigns();
-  }, [statusFilter]);
+  }, [statusFilter, selectedCategories]);
 
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
-      const params = statusFilter !== 'all' ? { status: statusFilter } : {};
+      const params = {};
+      
+      if (statusFilter !== 'all') params.status = statusFilter;
+      if (selectedCategories.length > 0) {
+        params.category = selectedCategories.join(','); // Send as comma-separated
+      }
+      
       const response = await api.get('/campaigns.list', { params });
       setCampaigns(response.data.campaigns);
     } catch (error) {
@@ -32,6 +51,16 @@ const Campaigns = () => {
       setLoading(false);
     }
   };
+
+  const toggleCategory = (category) => {
+    setSelectedCategories(prev => 
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
+
+  const clearCategories = () => setSelectedCategories([]);
 
   const filteredCampaigns = campaigns.filter((campaign) =>
     campaign.title.toLowerCase().includes(search.toLowerCase())
@@ -94,6 +123,39 @@ const Campaigns = () => {
           </div>
         </div>
 
+        {/* Category Filter - Pills */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Categories:</span>
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => toggleCategory(category)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  selectedCategories.includes(category)
+                    ? 'bg-primary-500 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+            {selectedCategories.length > 0 && (
+              <button
+                onClick={clearCategories}
+                className="text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 underline ml-2"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          {selectedCategories.length > 0 && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Showing campaigns in: {selectedCategories.join(', ')}
+            </p>
+          )}
+        </div>
+
         {/* Campaigns Grid */}
         {filteredCampaigns.length === 0 ? (
           <div className="text-center py-12">
@@ -150,8 +212,8 @@ const Campaigns = () => {
                     <div className="flex justify-between text-sm mb-1">
                       <span className="text-gray-600 dark:text-gray-400">Raised</span>
                       <span className="font-semibold text-gray-900 dark:text-white">
-                        ${campaign.currentAmount.toLocaleString()} of $
-                        {campaign.goalAmount.toLocaleString()}
+                        ₹{campaign.currentAmount.toLocaleString('en-IN')} of ₹
+                        {campaign.goalAmount.toLocaleString('en-IN')}
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">

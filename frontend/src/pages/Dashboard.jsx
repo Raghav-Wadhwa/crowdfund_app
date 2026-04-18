@@ -101,7 +101,7 @@ const Dashboard = () => {
               <div className="animate-pulse h-10 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
             ) : (
               <p className="text-3xl font-bold text-green-600 dark:text-green-400">
-                ${stats.totalRaised.toLocaleString()}
+                ₹{stats.totalRaised.toLocaleString('en-IN')}
               </p>
             )}
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">From all your campaigns</p>

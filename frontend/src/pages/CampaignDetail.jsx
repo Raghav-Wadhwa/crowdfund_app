@@ -190,7 +190,7 @@ const CampaignDetail = () => {
                     Raised
                   </p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    ${campaign.currentAmount.toLocaleString()}
+                    ₹{campaign.currentAmount.toLocaleString('en-IN')}
                   </p>
                 </div>
                 <div>
@@ -198,7 +198,7 @@ const CampaignDetail = () => {
                     Goal
                   </p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    ${campaign.goalAmount.toLocaleString()}
+                    ₹{campaign.goalAmount.toLocaleString('en-IN')}
                   </p>
                 </div>
                 <div>

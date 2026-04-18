@@ -15,11 +15,11 @@ cloudinary.config({
 });
 
 // Log configuration status (without exposing secrets)
-console.log('[Cloudinary] Config check:', {
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'Set' : 'NOT SET',
-  api_key: process.env.CLOUDINARY_API_KEY ? 'Set' : 'NOT SET',
-  api_secret: process.env.CLOUDINARY_API_SECRET ? 'Set' : 'NOT SET',
-});
+// console.log('[Cloudinary] Config check:', {
+//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'Set' : 'NOT SET',
+//   api_key: process.env.CLOUDINARY_API_KEY ? 'Set' : 'NOT SET',
+//   api_secret: process.env.CLOUDINARY_API_SECRET ? 'Set' : 'NOT SET',
+// });
 
 /**
  * Upload image to Cloudinary
