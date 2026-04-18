@@ -2,12 +2,14 @@
  * Main App Component
  *
  * Sets up routing and provides global context
+ * Includes "Smart Warmup" - checks if backend is awake first
  */
 
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import api from './utils/api';
 
 // Pages
 import Home from './pages/Home';
@@ -29,26 +31,55 @@ function App() {
   // Use /crowdfund_app for GitHub Pages, / for local development
   const basename = import.meta.env.BASE_URL || '/';
 
-  // Warmup loader state - check if already completed in this session
-  const [warmupComplete, setWarmupComplete] = useState(() => {
-    // Skip warmup in development
-    if (import.meta.env.DEV) return true;
-    // Check if already warmed up this session
-    return sessionStorage.getItem('warmupComplete') === 'true';
+  // Server status: 'checking' | 'awake' | 'waking'
+  const [serverStatus, setServerStatus] = useState(() => {
+    // Skip in development - backend is always available locally
+    if (import.meta.env.DEV) return 'awake';
+    // Check if already confirmed awake this session
+    if (sessionStorage.getItem('serverAwake') === 'true') return 'awake';
+    return 'checking';
   });
 
-  // Expose flag to window for console skip
+  // Check server status on mount
   useEffect(() => {
-    window.__SKIP_WARMUP__ = false;
-  }, []);
+    if (serverStatus !== 'checking') return;
 
+    const checkServer = async () => {
+      try {
+        // Quick health check with 3 second timeout
+        await api.get('/health', { timeout: 3000 });
+        // Server is awake!
+        sessionStorage.setItem('serverAwake', 'true');
+        setServerStatus('awake');
+        console.log('✅ Server is awake - no warmup needed');
+      } catch (error) {
+        // Server is sleeping, need to wake it up
+        console.log('⏳ Server is sleeping - showing warmup loader');
+        setServerStatus('waking');
+      }
+    };
+
+    checkServer();
+  }, [serverStatus]);
+
+  // Handle warmup completion
   const handleWarmupComplete = () => {
-    sessionStorage.setItem('warmupComplete', 'true');
-    setWarmupComplete(true);
+    sessionStorage.setItem('serverAwake', 'true');
+    setServerStatus('awake');
   };
 
-  // Show warmup loader on initial load (production only)
-  if (!warmupComplete) {
+  // Show checking state briefly while we verify server
+  if (serverStatus === 'checking') {
+    return (
+      <div className="fixed inset-0 bg-white dark:bg-gray-900 flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"></div>
+        <p className="text-gray-600 dark:text-gray-400">Checking server...</p>
+      </div>
+    );
+  }
+
+  // Show warmup loader only if server is actually waking up
+  if (serverStatus === 'waking') {
     return <WarmupLoader onComplete={handleWarmupComplete} />;
   }
 

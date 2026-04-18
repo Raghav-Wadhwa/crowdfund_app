@@ -29,8 +29,8 @@ const WarmupLoader = ({ onComplete }) => {
   const intervalRef = useRef(null);
   const checkIntervalRef = useRef(null);
 
-  // Total warmup time: 60 seconds
-  const TOTAL_TIME = 60000;
+  // Total warmup time: 30 seconds (reduced from 60s)
+  const TOTAL_TIME = 30000;
   const UPDATE_INTERVAL = 500; // Update every 500ms
   const PROGRESS_PER_TICK = (100 / (TOTAL_TIME / UPDATE_INTERVAL));
 
@@ -75,8 +75,8 @@ const WarmupLoader = ({ onComplete }) => {
         setStatus(backendReady ? 'Ready! 🎉' : 'Finalizing...');
       }
 
-      // Enable skip button after 15 seconds
-      if (currentProgress > 25) {
+      // Enable skip button after ~10 seconds (33% of 30s)
+      if (currentProgress > 33) {
         setCanSkip(true);
       }
 
@@ -202,7 +202,7 @@ const WarmupLoader = ({ onComplete }) => {
         {/* Time Estimate */}
         <p className="text-xs text-center text-gray-500 dark:text-gray-400 mb-6">
           {progress < 100
-            ? `Estimated time: ${Math.ceil((100 - progress) / 100 * 60)}s remaining`
+            ? `Estimated time: ${Math.ceil((100 - progress) / 100 * 30)}s remaining`
             : 'Starting up...'}
         </p>
       </div>
