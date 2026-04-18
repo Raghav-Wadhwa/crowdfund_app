@@ -1,9 +1,10 @@
 /**
  * Main App Component
- * 
+ *
  * Sets up routing and provides global context
  */
 
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
@@ -22,11 +23,35 @@ import Profile from './pages/Profile';
 // Components
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
+import WarmupLoader from './components/WarmupLoader';
 
 function App() {
   // Use /crowdfund_app for GitHub Pages, / for local development
   const basename = import.meta.env.BASE_URL || '/';
-  
+
+  // Warmup loader state - check if already completed in this session
+  const [warmupComplete, setWarmupComplete] = useState(() => {
+    // Skip warmup in development
+    if (import.meta.env.DEV) return true;
+    // Check if already warmed up this session
+    return sessionStorage.getItem('warmupComplete') === 'true';
+  });
+
+  // Expose flag to window for console skip
+  useEffect(() => {
+    window.__SKIP_WARMUP__ = false;
+  }, []);
+
+  const handleWarmupComplete = () => {
+    sessionStorage.setItem('warmupComplete', 'true');
+    setWarmupComplete(true);
+  };
+
+  // Show warmup loader on initial load (production only)
+  if (!warmupComplete) {
+    return <WarmupLoader onComplete={handleWarmupComplete} />;
+  }
+
   return (
     <AuthProvider>
       <Router basename={basename}>

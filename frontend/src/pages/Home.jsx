@@ -1,30 +1,13 @@
 /**
  * Home Page
- * 
+ *
  * Landing page with hero section and featured campaigns
  */
 
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Target, Users, TrendingUp } from 'lucide-react';
-import api from '../utils/api';
 
 const Home = () => {
-  // Wake up Render backend on page load (prevents cold start delay)
-  useEffect(() => {
-    const wakeUpBackend = async () => {
-      try {
-        // Silent health check to trigger backend startup
-        await api.get('/health', { timeout: 5000 });
-        console.log('✅ Backend is awake');
-      } catch (error) {
-        // Silent fail - backend might still be waking up
-        console.log('⏳ Backend waking up...');
-      }
-    };
-
-    wakeUpBackend();
-  }, []);
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
       {/* Hero Section */}
