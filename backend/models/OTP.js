@@ -24,6 +24,16 @@ const otpSchema = new mongoose.Schema(
       name: String,
       password: String,
     },
+    purpose: {
+      type: String,
+      enum: ['registration', 'email-change', 'password-reset'],
+      default: 'registration',
+    },
+    userId: {
+      // For email change - stores the user ID who requested the change
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
     expiresAt: {
       type: Date,
       required: true,

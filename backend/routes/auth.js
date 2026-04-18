@@ -647,7 +647,202 @@ router.put('/update-profile', auth, [
     })
   }
 }
-)
+);
+
+/**
+ * @route   POST /api/auth/request-email-change
+ * @desc    Request email change - sends OTP to new email
+ * @access  Private
+ */
+router.post(
+  '/request-email-change',
+  auth,
+  [
+    body('newEmail').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array(),
+        });
+      }
+
+      const { newEmail } = req.body;
+      const normalizedEmail = newEmail.toLowerCase();
+      const userId = req.user._id;
+
+      // Check if new email is same as current
+      if (normalizedEmail === req.user.email.toLowerCase()) {
+        return res.status(400).json({
+          success: false,
+          message: 'New email must be different from current email',
+        });
+      }
+
+      // Check if email is already in use by another user
+      const existingUser = await User.findOne({ email: normalizedEmail });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already in use by another account',
+        });
+      }
+
+      // Delete any existing OTP for this email
+      await OTP.deleteOne({ email: normalizedEmail, purpose: 'email-change' });
+
+      // Generate OTP
+      const otp = generateOTP();
+      console.log(`[Email Change] Generated OTP for ${normalizedEmail}: ${otp}`);
+
+      // Store OTP with purpose and userId
+      const otpEntry = new OTP({
+        email: normalizedEmail,
+        otp,
+        purpose: 'email-change',
+        userId,
+      });
+      await otpEntry.save();
+
+      // Send OTP email
+      const emailSent = await sendOTPEmail(normalizedEmail, otp, req.user.name);
+
+      if (!emailSent) {
+        await OTP.deleteOne({ email: normalizedEmail, purpose: 'email-change' });
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to send verification email. Please try again.',
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Verification code sent to your new email address',
+        email: normalizedEmail,
+        expiresIn: 600, // 10 minutes
+      });
+    } catch (error) {
+      console.error('Request email change error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error',
+        error: error.message,
+      });
+    }
+  }
+);
+
+/**
+ * @route   POST /api/auth/verify-email-change
+ * @desc    Verify OTP and update email address
+ * @access  Private
+ */
+router.post(
+  '/verify-email-change',
+  auth,
+  [
+    body('newEmail').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+    body('otp').isLength({ min: 6, max: 6 }).isNumeric().withMessage('OTP must be 6 digits'),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array(),
+        });
+      }
+
+      const { newEmail, otp } = req.body;
+      const normalizedEmail = newEmail.toLowerCase();
+      const userId = req.user._id;
+
+      // Find OTP entry
+      const otpEntry = await OTP.findOne({
+        email: normalizedEmail,
+        purpose: 'email-change',
+        userId,
+      });
+
+      if (!otpEntry) {
+        return res.status(400).json({
+          success: false,
+          message: 'OTP expired or invalid. Please request a new one.',
+        });
+      }
+
+      // Check if OTP matches
+      if (otpEntry.otp !== otp) {
+        otpEntry.attempts += 1;
+        await otpEntry.save();
+
+        if (otpEntry.attempts >= 3) {
+          await OTP.deleteOne({ email: normalizedEmail, purpose: 'email-change' });
+          return res.status(400).json({
+            success: false,
+            message: 'Too many failed attempts. Please request a new OTP.',
+          });
+        }
+
+        return res.status(400).json({
+          success: false,
+          message: `Invalid OTP. ${3 - otpEntry.attempts} attempts remaining.`,
+        });
+      }
+
+      // OTP verified - update user's email
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+      }
+
+      // Double-check email not taken (race condition protection)
+      const existingUser = await User.findOne({ email: normalizedEmail });
+      if (existingUser && existingUser._id.toString() !== userId.toString()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already in use by another account',
+        });
+      }
+
+      // Update email
+      user.email = normalizedEmail;
+      await user.save();
+
+      // Delete OTP after successful verification
+      await OTP.deleteOne({ email: normalizedEmail, purpose: 'email-change' });
+
+      console.log(`[Email Change] User ${userId} changed email to ${normalizedEmail}`);
+
+      res.json({
+        success: true,
+        message: 'Email address updated successfully!',
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+        },
+      });
+    } catch (error) {
+      console.error('Verify email change error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error during verification',
+        error: error.message,
+      });
+    }
+  }
+);
 
 /**
  * @route   GET /api/auth/users
