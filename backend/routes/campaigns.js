@@ -264,7 +264,65 @@ router.get('/:id', async (req, res) => {
  * @desc    Update campaign (only by creator, with optional image upload)
  * @access  Private
  */
-router.put('/:id', auth, upload.single('image'), async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+
+    if (!campaign) {
+      return res.status(404).json({
+        success: false,
+        message: 'Campaign not found',
+      });
+    }
+
+    // Check if user is the creator or an admin
+    const isCreator = campaign.creator.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isCreator && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this campaign',
+      });
+    }
+
+    // Update allowed fields
+    const allowedUpdates = [
+      'title',
+      'description',
+      'category',
+      'goalAmount',
+      'deadline',
+    ];
+    allowedUpdates.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        campaign[field] = req.body[field];
+      }
+    });
+
+    await campaign.save();
+    await campaign.populate('creator', 'name email avatar');
+
+    res.json({
+      success: true,
+      message: 'Campaign updated successfully',
+      campaign,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error updating campaign',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/campaign.update/:id/with-image
+ * @desc    Update campaign with image upload (only by creator)
+ * @access  Private
+ */
+router.put('/:id/with-image', auth, upload.single('image'), async (req, res) => {
   try {
     const campaign = await Campaign.findById(req.params.id);
 

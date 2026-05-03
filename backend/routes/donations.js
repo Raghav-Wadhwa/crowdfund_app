@@ -11,7 +11,9 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Donation = require('../models/Donation');
 const Campaign = require('../models/Campaign');
+const User = require('../models/User');
 const auth = require('../middleware/auth');
+const { sendDonationEmailToDonor, sendDonationEmailToCreator } = require('../utils/emailService');
 
 const router = express.Router();
 
@@ -41,8 +43,8 @@ router.post(
 
       const { amount, campaign: campaignId, message, anonymous } = req.body;
 
-      // Check if campaign exists
-      const campaign = await Campaign.findById(campaignId);
+      // Check if campaign exists and populate creator info
+      const campaign = await Campaign.findById(campaignId).populate('creator', 'name email');
       if (!campaign) {
         return res.status(404).json({
           success: false,
@@ -108,6 +110,49 @@ router.post(
       // Populate donation with donor and campaign info
       await donation.populate('donor', 'name email avatar');
       await donation.populate('campaign', 'title');
+
+      // Send notification emails (don't block response on email failures)
+      console.log('[Donation] Preparing to send notification emails...');
+      try {
+        const donor = await User.findById(req.user._id);
+        const creator = campaign.creator;
+
+        console.log('[Donation] Donor:', donor?.email, 'Creator:', creator?.email);
+
+        // Send thank you email to donor
+        if (donor && donor.email) {
+          console.log('[Donation] Sending thank you email to donor:', donor.email);
+          sendDonationEmailToDonor(
+            donor.email,
+            donor.name,
+            amount,
+            campaign.title
+          ).then(() => console.log('[Donation] Donor email sent successfully'))
+           .catch(err => console.log('[Donation] Failed to send donor email:', err.message));
+        } else {
+          console.log('[Donation] No donor email found, skipping donor notification');
+        }
+
+        // Send notification email to campaign creator
+        if (creator && creator.email) {
+          console.log('[Donation] Sending notification email to creator:', creator.email);
+          sendDonationEmailToCreator(
+            creator.email,
+            creator.name,
+            donor ? donor.name : 'Someone',
+            amount,
+            campaign.title,
+            campaign.currentAmount,
+            campaign.goalAmount
+          ).then(() => console.log('[Donation] Creator email sent successfully'))
+           .catch(err => console.log('[Donation] Failed to send creator email:', err.message));
+        } else {
+          console.log('[Donation] No creator email found, skipping creator notification');
+        }
+      } catch (emailError) {
+        console.log('[Donation] Error sending donation emails:', emailError.message);
+        // Don't fail the donation if emails fail
+      }
 
       res.status(201).json({
         success: true,

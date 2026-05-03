@@ -13,6 +13,8 @@ const crypto = require('crypto');
 const auth = require('../middleware/auth');
 const Campaign = require('../models/Campaign');
 const Donation = require('../models/Donation');
+const User = require('../models/User');
+const { sendDonationEmailToDonor, sendDonationEmailToCreator } = require('../utils/emailService');
 
 const router = express.Router();
 
@@ -127,6 +129,8 @@ router.post('/verify', auth, async (req, res) => {
       razorpay_signature,
       campaignId,
       amount,
+      message,
+      anonymous,
     } = req.body;
 
     // Verify signature
@@ -142,8 +146,8 @@ router.post('/verify', auth, async (req, res) => {
       });
     }
 
-    // Find campaign
-    const campaign = await Campaign.findById(campaignId);
+    // Find campaign and populate creator info
+    const campaign = await Campaign.findById(campaignId).populate('creator', 'name email');
     if (!campaign) {
       return res.status(404).json({
         success: false,
@@ -168,6 +172,8 @@ router.post('/verify', auth, async (req, res) => {
       campaign: campaignId,
       donor: req.user._id,
       amount: amount,
+      message: message || '',
+      anonymous: anonymous || false,
       paymentId: razorpay_payment_id,
       orderId: razorpay_order_id,
       status: 'completed',
@@ -187,6 +193,51 @@ router.post('/verify', auth, async (req, res) => {
 
     // Populate donor info for response
     await donation.populate('donor', 'name email avatar');
+
+    // Send notification emails (don't block response on email failures)
+    console.log('[Payment] Preparing to send donation notification emails...');
+    try {
+      // Get donor info from req.user (already authenticated)
+      const donor = req.user;
+      // Creator is already populated from the campaign query above
+      const creator = campaign.creator;
+
+      console.log('[Payment] Donor:', donor?.email, 'Creator:', creator?.email);
+
+      // Send thank you email to donor
+      if (donor && donor.email) {
+        console.log('[Payment] Sending thank you email to donor:', donor.email);
+        sendDonationEmailToDonor(
+          donor.email,
+          donor.name,
+          amount,
+          campaign.title
+        ).then(() => console.log('[Payment] Donor email sent successfully'))
+         .catch(err => console.log('[Payment] Failed to send donor email:', err.message));
+      } else {
+        console.log('[Payment] No donor email found, skipping donor notification');
+      }
+
+      // Send notification email to campaign creator
+      if (creator && creator.email) {
+        console.log('[Payment] Sending notification email to creator:', creator.email);
+        sendDonationEmailToCreator(
+          creator.email,
+          creator.name,
+          donor ? donor.name : 'Someone',
+          amount,
+          campaign.title,
+          campaign.currentAmount,
+          campaign.goalAmount
+        ).then(() => console.log('[Payment] Creator email sent successfully'))
+         .catch(err => console.log('[Payment] Failed to send creator email:', err.message));
+      } else {
+        console.log('[Payment] No creator email found, skipping creator notification');
+      }
+    } catch (emailError) {
+      console.log('[Payment] Error sending donation emails:', emailError.message);
+      // Don't fail the payment if emails fail
+    }
 
     res.json({
       success: true,

@@ -10,7 +10,7 @@ import api from '../utils/api';
 import toast from 'react-hot-toast';
 import DonateModal from '../components/DonateModal';
 import { useAuth } from '../context/AuthContext';
-import { Edit, Share2, Check } from 'lucide-react';
+import { Edit, Share2, Check, Clock } from 'lucide-react';
 
 const CampaignDetail = () => {
   const { id } = useParams();
@@ -52,6 +52,43 @@ const CampaignDetail = () => {
     const isCreator = campaign.creator._id === user.id;
     const isAdmin = user.role === 'admin';
     return isCreator || isAdmin;
+  };
+
+  // Check if deadline has passed
+  const isDeadlinePassed = () => {
+    if (!campaign?.deadline) return false;
+    const deadlineDate = new Date(campaign.deadline);
+    const now = new Date();
+    return now > deadlineDate;
+  };
+
+  // Format deadline for display
+  const formatDeadline = (deadline) => {
+    if (!deadline) return 'No deadline set';
+    const date = new Date(deadline);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  // Get days remaining
+  const getDaysRemaining = () => {
+    if (!campaign?.deadline) return null;
+    const deadlineDate = new Date(campaign.deadline);
+    const now = new Date();
+    const diffTime = deadlineDate - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  // Determine campaign status
+  const getCampaignStatus = () => {
+    if (campaign?.status === 'completed') return 'completed';
+    if (isDeadlinePassed()) return 'expired';
+    if (campaign?.status === 'cancelled') return 'cancelled';
+    return 'active';
   };
 
   const handleEdit = () => {
@@ -123,10 +160,32 @@ const CampaignDetail = () => {
 
           {/* Campaign Content */}
           <div className="p-8">
-            <div className="mb-4">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
               <span className="inline-block bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 px-3 py-1 rounded-full font-semibold text-sm">
                 {campaign.category}
               </span>
+              
+              {/* Campaign Status Badge */}
+              {getCampaignStatus() === 'completed' && (
+                <span className="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1 rounded-full font-semibold text-sm">
+                  ✅ Completed
+                </span>
+              )}
+              {getCampaignStatus() === 'expired' && (
+                <span className="inline-block bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 px-3 py-1 rounded-full font-semibold text-sm">
+                  ⏰ Expired
+                </span>
+              )}
+              {getCampaignStatus() === 'cancelled' && (
+                <span className="inline-block bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-full font-semibold text-sm">
+                  🚫 Cancelled
+                </span>
+              )}
+              {getCampaignStatus() === 'active' && getDaysRemaining() !== null && getDaysRemaining() <= 7 && (
+                <span className="inline-block bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-3 py-1 rounded-full font-semibold text-sm">
+                  ⏳ {getDaysRemaining()} days left
+                </span>
+              )}
             </div>
 
             <div className="flex justify-between items-start mb-4">
