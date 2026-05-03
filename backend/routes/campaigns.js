@@ -1,6 +1,6 @@
 /**
  * Campaign Routes
- * 
+ *
  * Handles CRUD operations for campaigns:
  * - Create new campaigns
  * - Get all campaigns (with filtering and pagination)
@@ -45,6 +45,23 @@ const upload = multer({
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
 });
+
+/**
+ * Helper function to check and update expired campaigns
+ * If deadline has passed and status is still 'active', mark as 'expired'
+ */
+const checkAndUpdateExpiredCampaign = async (campaign) => {
+  if (campaign.status === 'active' && campaign.deadline) {
+    const deadlineDate = new Date(campaign.deadline);
+    const now = new Date();
+    if (now > deadlineDate) {
+      campaign.status = 'expired';
+      await campaign.save();
+      console.log(`[Campaign] Auto-marked campaign ${campaign._id} as expired (deadline passed)`);
+    }
+  }
+  return campaign;
+};
 
 /**
  * @route   POST /api/campaign.create
@@ -157,7 +174,7 @@ router.get('/', async (req, res) => {
 
     // Build query object
     const query = {};
-    
+
     // Handle category filter (single or multiple)
     if (category) {
       // Check if it's a comma-separated list (multiple categories)
@@ -168,7 +185,7 @@ router.get('/', async (req, res) => {
         query.category = { $in: categories };
       }
     }
-    
+
     if (status && status !== 'all') query.status = status; // Only filter if specified and not 'all'
     if (search) {
       // Search in title and description
@@ -189,6 +206,11 @@ router.get('/', async (req, res) => {
       .sort(sort)
       .skip(skip)
       .limit(limitNum);
+
+    // Check for expired campaigns and update them
+    for (const campaign of campaigns) {
+      await checkAndUpdateExpiredCampaign(campaign);
+    }
 
     // Get total count for pagination
     const total = await Campaign.countDocuments(query);
@@ -233,6 +255,9 @@ router.get('/:id', async (req, res) => {
       });
     }
 
+    // Check if campaign has expired and auto-update status
+    await checkAndUpdateExpiredCampaign(campaign);
+
     // Get recent donations for this campaign
     const donations = await Donation.find({ campaign: campaign._id })
       .populate('donor', 'name email avatar')
@@ -264,65 +289,7 @@ router.get('/:id', async (req, res) => {
  * @desc    Update campaign (only by creator, with optional image upload)
  * @access  Private
  */
-router.put('/:id', auth, async (req, res) => {
-  try {
-    const campaign = await Campaign.findById(req.params.id);
-
-    if (!campaign) {
-      return res.status(404).json({
-        success: false,
-        message: 'Campaign not found',
-      });
-    }
-
-    // Check if user is the creator or an admin
-    const isCreator = campaign.creator.toString() === req.user._id.toString();
-    const isAdmin = req.user.role === 'admin';
-
-    if (!isCreator && !isAdmin) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to update this campaign',
-      });
-    }
-
-    // Update allowed fields
-    const allowedUpdates = [
-      'title',
-      'description',
-      'category',
-      'goalAmount',
-      'deadline',
-    ];
-    allowedUpdates.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        campaign[field] = req.body[field];
-      }
-    });
-
-    await campaign.save();
-    await campaign.populate('creator', 'name email avatar');
-
-    res.json({
-      success: true,
-      message: 'Campaign updated successfully',
-      campaign,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error updating campaign',
-      error: error.message,
-    });
-  }
-});
-
-/**
- * @route   PUT /api/campaign.update/:id/with-image
- * @desc    Update campaign with image upload (only by creator)
- * @access  Private
- */
-router.put('/:id/with-image', auth, upload.single('image'), async (req, res) => {
+router.put('/:id', auth, upload.single('image'), async (req, res) => {
   try {
     const campaign = await Campaign.findById(req.params.id);
 
@@ -403,7 +370,7 @@ router.delete('/:id', auth, async (req, res) => {
     // Check if user is the creator or an admin
     const isCreator = campaign.creator.toString() === req.user._id.toString();
     const isAdmin = req.user.role === 'admin';
-    
+
     if (!isCreator && !isAdmin) {
       return res.status(403).json({
         success: false,
@@ -452,4 +419,3 @@ router.use((error, req, res, next) => {
 });
 
 module.exports = router;
-
